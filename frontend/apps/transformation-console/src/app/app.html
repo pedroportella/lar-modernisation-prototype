@@ -1,0 +1,24 @@
+<main class="console-shell">
+  <section class="hero" aria-labelledby="page-title">
+    <p class="eyebrow">Large Australian Retailer</p>
+    <h1 id="page-title">Transformation Delivery Console</h1>
+    <p class="summary">
+      A runnable Angular and .NET scaffold for tracking modernisation streams
+      across payments, warehouse operations, HR uplift, insights and automation.
+    </p>
+  </section>
+
+  <section class="workstreams" aria-label="Modernisation workstreams">
+    @for (workstream of workstreams; track workstream.name) {
+      <article class="workstream-card">
+        <div>
+          <h2>{{ workstream.name }}</h2>
+          <p>{{ workstream.summary }}</p>
+        </div>
+        <span>{{ workstream.status }}</span>
+      </article>
+    }
+  </section>
+</main>
+
+<router-outlet></router-outlet>

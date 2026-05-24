@@ -1,0 +1,70 @@
+# Large Australian Retailer Modernisation Prototype
+
+Working scaffold for an interview prototype: an Angular transformation console backed by a .NET API.
+
+The client framing is intentionally neutral. The prototype demonstrates delivery judgement for a large Australian retailer modernisation program without naming or copying a real client.
+
+## Repository Shape
+
+```text
+lar-modernisation-prototype/
+  frontend/   Nx Angular workspace
+  backend/    .NET solution and layered projects
+  docs/       handover notes for reviewers
+```
+
+## Current C2 Scope
+
+- Angular/Nx workspace under `frontend`.
+- .NET solution under `backend`.
+- Placeholder Angular console surface.
+- Placeholder API endpoints: `/health`, `/api/workstreams`, `/api/workstreams/{id}`.
+- One git repository at this folder root for both frontend and backend.
+
+## Run Locally
+
+Frontend:
+
+```bash
+cd frontend
+pnpm exec nx serve transformation-console
+```
+
+Backend:
+
+```bash
+dotnet run --project backend/src/LargeRetailer.Modernisation.Api
+```
+
+## Verify
+
+Frontend:
+
+```bash
+cd frontend
+pnpm nx build transformation-console
+pnpm exec tsc -p apps/transformation-console/tsconfig.app.json --noEmit
+```
+
+Backend:
+
+```bash
+dotnet build backend/LargeRetailer.Modernisation.sln
+dotnet test backend/LargeRetailer.Modernisation.sln
+```
+
+## What Is Real
+
+- Runnable Angular app scaffold.
+- Runnable .NET API scaffold.
+- Layered backend project structure.
+- Local placeholder endpoints and tests.
+
+## What Is Simulated
+
+- Payment provider integration.
+- Warehouse, HRIS and analytics feeds.
+- AI/model calls.
+- Enterprise identity, PCI controls and cloud deployment.
+
+Those boundaries are reserved for later chunks and should be named honestly when implemented.

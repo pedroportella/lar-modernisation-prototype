@@ -1,0 +1,13 @@
+{
+  "name": "lar-modernisation-prototype",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "frontend:dev": "cd frontend && pnpm exec nx serve transformation-console",
+    "frontend:build": "cd frontend && pnpm nx build transformation-console",
+    "frontend:typecheck": "cd frontend && pnpm exec tsc -p apps/transformation-console/tsconfig.app.json --noEmit",
+    "backend:dev": "dotnet run --project backend/src/LargeRetailer.Modernisation.Api",
+    "backend:build": "dotnet build backend/LargeRetailer.Modernisation.sln",
+    "backend:test": "dotnet test backend/LargeRetailer.Modernisation.sln"
+  }
+}
