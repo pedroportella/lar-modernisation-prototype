@@ -169,5 +169,6 @@ export class AppShellComponent {
     { label: 'HR uplift', path: '/hr-platform' },
     { label: 'Insights', path: '/insights' },
     { label: 'Automation', path: '/automation' },
+    { label: 'Operations', path: '/operations' },
   ];
 }

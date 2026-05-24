@@ -68,6 +68,26 @@ const featureResponses: Record<string, unknown[]> = {
   ],
 };
 
+const operationsStatus = {
+  service: 'LargeRetailer.Modernisation.Api',
+  status: 'Ready',
+  environment: 'Development',
+  generatedAtUtc: '2026-05-25T00:00:00Z',
+  database: {
+    provider: 'SQLite',
+    status: 'Reachable',
+  },
+  counts: {
+    workstreams: 5,
+    initiatives: 6,
+    paymentReadinessItems: 2,
+    warehouseSignals: 1,
+    hrPlatformTasks: 1,
+    insightMetrics: 1,
+    automationCandidates: 1,
+  },
+};
+
 test.beforeEach(async ({ page }) => {
   await page.route('**/api/workstreams', async (route) => {
     await route.fulfill({ json: workstreams });
@@ -78,6 +98,10 @@ test.beforeEach(async ({ page }) => {
       await route.fulfill({ json: records });
     });
   }
+
+  await page.route('**/api/operations/status', async (route) => {
+    await route.fulfill({ json: operationsStatus });
+  });
 });
 
 test('renders dashboard workstreams from the API boundary', async ({ page }) => {
@@ -87,6 +111,15 @@ test('renders dashboard workstreams from the API boundary', async ({ page }) => 
   await expect(page.getByText('Payments Migration')).toBeVisible();
   await expect(page.getByText('Warehouse Optimisation')).toBeVisible();
   await expect(page.getByText('Needs attention')).toBeVisible();
+  await expect(page.getByText('Unable to reach the backend API.')).toBeHidden();
+});
+
+test('renders operations status from the API boundary', async ({ page }) => {
+  await page.goto('/operations');
+
+  await expect(page.getByRole('heading', { name: 'Runtime Status' })).toBeVisible();
+  await expect(page.getByText('SQLite Reachable')).toBeVisible();
+  await expect(page.getByText('Payment readiness')).toBeVisible();
   await expect(page.getByText('Unable to reach the backend API.')).toBeHidden();
 });
 

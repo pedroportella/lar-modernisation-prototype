@@ -6,6 +6,7 @@ import {
   AutomationCandidate,
   HrPlatformTask,
   InsightMetric,
+  OperationalStatus,
   PaymentReadinessItem,
   WarehouseSignal,
   Workstream,
@@ -45,5 +46,9 @@ export class TransformationApiService {
 
   listAutomationCandidates(): Observable<AutomationCandidate[]> {
     return this.http.get<AutomationCandidate[]>(`${this.apiBaseUrl}/api/automation/candidates`);
+  }
+
+  getOperationalStatus(): Observable<OperationalStatus> {
+    return this.http.get<OperationalStatus>(`${this.apiBaseUrl}/api/operations/status`);
   }
 }

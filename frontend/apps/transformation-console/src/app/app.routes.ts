@@ -1,6 +1,7 @@
 import { Route } from '@angular/router';
 import { DashboardPageComponent } from './dashboard/dashboard-page.component';
 import { FeatureSlicePageComponent } from './features/feature-slice-page.component';
+import { OperationsStatusPageComponent } from './operations/operations-status-page.component';
 
 export const appRoutes: Route[] = [
   {
@@ -37,5 +38,10 @@ export const appRoutes: Route[] = [
     component: FeatureSlicePageComponent,
     title: 'Automation Opportunity Queue',
     data: { slice: 'automation' },
+  },
+  {
+    path: 'operations',
+    component: OperationsStatusPageComponent,
+    title: 'Operations Status',
   },
 ];

@@ -20,6 +20,7 @@ lar-modernisation-prototype/
 - Angular app shell, routed dashboard and frontend packages.
 - EF Core SQLite persistence with deterministic seed data.
 - API endpoints for workstreams and five feature slices.
+- Operations status endpoint and route for runtime readiness and seeded data counts.
 - Docker Compose runtime with frontend and backend containers.
 - GitHub Actions CI workflow for frontend, backend and Docker image gates.
 - One git repository at this folder root for both frontend and backend.
@@ -103,6 +104,7 @@ See [docs/ci-deployment-notes.md](docs/ci-deployment-notes.md) for CI and deploy
 - Frontend package boundaries for services, UI assets, UI library, UI tokens and utils.
 - Dashboard workstream data loaded from the .NET API through `libs/services`.
 - Feature routes for payments, warehouse, HR uplift, insights and automation.
+- Operations route for API readiness, SQLite status and seeded dataset counts.
 - Docker Compose stack for local full-stack review.
 - GitHub Actions workflow that validates frontend, backend and Docker packaging.
 - Runnable .NET API with layered project structure.
@@ -114,6 +116,9 @@ See [docs/ci-deployment-notes.md](docs/ci-deployment-notes.md) for CI and deploy
 
 ```text
 GET /health
+GET /health/live
+GET /health/ready
+GET /api/operations/status
 GET /api/workstreams
 GET /api/workstreams/{id}
 GET /api/payments/migration-readiness

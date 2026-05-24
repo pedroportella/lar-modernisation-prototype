@@ -60,3 +60,27 @@ export interface AutomationCandidate {
   riskClass: string;
   recommendedNextStep: string;
 }
+
+export interface OperationalStatus {
+  service: string;
+  status: string;
+  environment: string;
+  generatedAtUtc: string;
+  database: OperationalDatabaseStatus;
+  counts: OperationalDatasetCounts;
+}
+
+export interface OperationalDatabaseStatus {
+  provider: string;
+  status: string;
+}
+
+export interface OperationalDatasetCounts {
+  workstreams: number;
+  initiatives: number;
+  paymentReadinessItems: number;
+  warehouseSignals: number;
+  hrPlatformTasks: number;
+  insightMetrics: number;
+  automationCandidates: number;
+}

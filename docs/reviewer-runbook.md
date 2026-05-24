@@ -76,9 +76,12 @@ pnpm docker:down
 With the Docker stack running, verify:
 
 - `GET http://localhost:5029/health` returns `Healthy`.
+- `GET http://localhost:5029/health/ready` returns `Ready`.
+- `GET http://localhost:5029/api/operations/status` returns SQLite status and seeded data counts.
 - `GET http://localhost:5029/api/workstreams` returns seeded workstreams.
 - `GET http://localhost:4200/assets/runtime-config.js` points at `http://localhost:5029`.
 - `http://localhost:4200/automation` renders `Opportunity Queue` with one or more table rows.
+- `http://localhost:4200/operations` renders `Runtime Status`.
 - The app does not show `Unable to reach the backend API.`
 
 ## Reviewer Notes

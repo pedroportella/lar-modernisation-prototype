@@ -2,6 +2,7 @@ using LargeRetailer.Modernisation.Application.Features;
 using LargeRetailer.Modernisation.Application.Workstreams;
 using LargeRetailer.Modernisation.Infrastructure;
 using LargeRetailer.Modernisation.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -41,6 +42,47 @@ using (var scope = app.Services.CreateScope())
 
 app.MapGet("/health", () => Results.Ok(new HealthResponse("Healthy", "LargeRetailer.Modernisation.Api")))
     .WithName("Health");
+
+app.MapGet("/health/live", () => Results.Ok(new HealthResponse("Healthy", "LargeRetailer.Modernisation.Api")))
+    .WithName("Liveness");
+
+app.MapGet("/health/ready", async (
+        ModernisationDbContext dbContext,
+        CancellationToken cancellationToken) =>
+    {
+        var canConnect = await dbContext.Database.CanConnectAsync(cancellationToken);
+
+        return canConnect
+            ? Results.Ok(new HealthResponse("Ready", "LargeRetailer.Modernisation.Api"))
+            : Results.Problem("Modernisation database is not reachable.", statusCode: StatusCodes.Status503ServiceUnavailable);
+    })
+    .WithName("Readiness");
+
+app.MapGet("/api/operations/status", async (
+        ModernisationDbContext dbContext,
+        IWebHostEnvironment environment,
+        CancellationToken cancellationToken) =>
+    {
+        var counts = new OperationalDatasetCounts(
+            await dbContext.Workstreams.CountAsync(cancellationToken),
+            await dbContext.Initiatives.CountAsync(cancellationToken),
+            await dbContext.MigrationReadinessItems.CountAsync(cancellationToken),
+            await dbContext.WarehouseSignals.CountAsync(cancellationToken),
+            await dbContext.HrPlatformTasks.CountAsync(cancellationToken),
+            await dbContext.InsightMetrics.CountAsync(cancellationToken),
+            await dbContext.AutomationCandidates.CountAsync(cancellationToken));
+
+        var response = new OperationalStatusResponse(
+            "LargeRetailer.Modernisation.Api",
+            "Ready",
+            environment.EnvironmentName,
+            DateTimeOffset.UtcNow,
+            new OperationalDatabaseStatus("SQLite", "Reachable"),
+            counts);
+
+        return Results.Ok(response);
+    })
+    .WithName("GetOperationalStatus");
 
 app.MapGet("/api/workstreams", async (
         IWorkstreamQueryService workstreamQueryService,
@@ -96,5 +138,24 @@ app.MapGet("/api/automation/candidates", async (
 app.Run();
 
 public sealed record HealthResponse(string Status, string Service);
+
+public sealed record OperationalStatusResponse(
+    string Service,
+    string Status,
+    string Environment,
+    DateTimeOffset GeneratedAtUtc,
+    OperationalDatabaseStatus Database,
+    OperationalDatasetCounts Counts);
+
+public sealed record OperationalDatabaseStatus(string Provider, string Status);
+
+public sealed record OperationalDatasetCounts(
+    int Workstreams,
+    int Initiatives,
+    int PaymentReadinessItems,
+    int WarehouseSignals,
+    int HrPlatformTasks,
+    int InsightMetrics,
+    int AutomationCandidates);
 
 public partial class Program;

@@ -1,0 +1,45 @@
+<section class="operations" aria-labelledby="operations-title">
+  <div class="heading">
+    <p class="eyebrow">Operations</p>
+    <h1 id="operations-title">Runtime Status</h1>
+    <p>Readiness, data posture and runtime metadata from the .NET API.</p>
+  </div>
+
+  @if (state$ | async; as state) {
+    @if (state.status === 'loading') {
+      <p class="notice">Loading operations status...</p>
+    } @else if (state.status === 'error') {
+      <p class="notice error">Unable to reach the backend API.</p>
+    } @else {
+      <section class="status-grid" aria-label="Runtime summary">
+        <div>
+          <span>API status</span>
+          <strong>
+            <lar-status-pill [status]="state.statusReport.status"></lar-status-pill>
+          </strong>
+        </div>
+        <div>
+          <span>Database</span>
+          <strong>{{ state.statusReport.database.provider }} {{ state.statusReport.database.status }}</strong>
+        </div>
+        <div>
+          <span>Environment</span>
+          <strong>{{ state.statusReport.environment | titlecase }}</strong>
+        </div>
+        <div>
+          <span>Generated</span>
+          <strong>{{ state.statusReport.generatedAtUtc | date: 'medium' }}</strong>
+        </div>
+      </section>
+
+      <section class="counts" aria-label="Seeded data counts">
+        @for (item of state.countItems; track item.label) {
+          <div>
+            <span>{{ item.label }}</span>
+            <strong>{{ item.value }}</strong>
+          </div>
+        }
+      </section>
+    }
+  }
+</section>

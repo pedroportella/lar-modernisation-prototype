@@ -59,6 +59,39 @@ public sealed class WorkstreamApiTests
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
+    [Fact]
+    public async Task Operations_status_endpoint_returns_readiness_and_dataset_counts()
+    {
+        var databasePath = Path.Combine(Path.GetTempPath(), $"lar-modernisation-{Guid.NewGuid():N}.db");
+
+        await using var application = new WebApplicationFactory<Program>()
+            .WithWebHostBuilder(builder =>
+            {
+                builder.ConfigureAppConfiguration((_, configurationBuilder) =>
+                {
+                    configurationBuilder.AddInMemoryCollection(new Dictionary<string, string?>
+                    {
+                        ["ConnectionStrings:ModernisationDb"] = $"Data Source={databasePath}"
+                    });
+                });
+            });
+
+        var client = application.CreateClient();
+
+        var status = await client.GetFromJsonAsync<OperationalStatusResponse>(
+            "/api/operations/status",
+            CancellationToken.None);
+
+        Assert.NotNull(status);
+        Assert.Equal("Ready", status.Status);
+        Assert.Equal("SQLite", status.Database.Provider);
+        Assert.Equal("Reachable", status.Database.Status);
+        Assert.Equal(5, status.Counts.Workstreams);
+        Assert.Equal(6, status.Counts.Initiatives);
+        Assert.Equal(2, status.Counts.PaymentReadinessItems);
+        Assert.Equal(1, status.Counts.AutomationCandidates);
+    }
+
     [Theory]
     [InlineData("/api/payments/migration-readiness", 2)]
     [InlineData("/api/warehouse/optimisation", 1)]
@@ -95,4 +128,23 @@ public sealed class WorkstreamApiTests
         string Status,
         string Summary,
         int Priority);
+
+    private sealed record OperationalStatusResponse(
+        string Service,
+        string Status,
+        string Environment,
+        DateTimeOffset GeneratedAtUtc,
+        OperationalDatabaseStatus Database,
+        OperationalDatasetCounts Counts);
+
+    private sealed record OperationalDatabaseStatus(string Provider, string Status);
+
+    private sealed record OperationalDatasetCounts(
+        int Workstreams,
+        int Initiatives,
+        int PaymentReadinessItems,
+        int WarehouseSignals,
+        int HrPlatformTasks,
+        int InsightMetrics,
+        int AutomationCandidates);
 }

@@ -77,6 +77,17 @@ The prototype now has CI and deployment packaging guidance:
 - CI/deployment notes describing the Compose package, runtime config boundary and production promotion path;
 - README and reviewer runbook links so reviewers can find the pipeline and deployment notes quickly.
 
+## C9 Outcome
+
+The prototype now has a small observability slice:
+
+- `/health/live` for container/process liveness;
+- `/health/ready` for database-backed readiness;
+- `/api/operations/status` for runtime metadata, SQLite reachability and seeded dataset counts;
+- Angular `Operations` route that displays readiness, database status, environment, timestamp and counts;
+- backend contract/integration coverage and frontend route smoke coverage for the operations surface;
+- README and reviewer runbook updates for the new smoke checks.
+
 ## Next Chunk
 
-C9 can focus on richer domain behaviour, observability, deployment manifests or interview narrative polish.
+C10 can focus on richer domain behaviour, observability depth, deployment manifests or interview narrative polish.
