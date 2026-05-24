@@ -57,6 +57,16 @@ The prototype can run as a two-container local stack:
 - runtime frontend config points browser API calls at `http://localhost:5029`;
 - SQLite persists in a named Docker volume at `/data/modernisation.db`.
 
+## C7 Outcome
+
+The prototype now has a repeatable reviewer handover:
+
+- root quality scripts for lint, typecheck, backend tests and Docker image verification;
+- Angular production build verification from the frontend workspace;
+- Playwright smoke coverage for the dashboard and all five feature routes with mocked API responses;
+- a reviewer runbook covering repository orientation, quality gates, runtime commands and manual Docker smoke checks;
+- README verification instructions that point reviewers to the standard and full gates.
+
 ## Next Chunk
 
-C7 should tighten final quality gates, add final smoke evidence, and polish the reviewer runbook.
+C8 can focus on deployment packaging, CI workflow definition or richer domain behaviour depending on interview priorities.

@@ -51,19 +51,39 @@ Open:
 
 ## Verify
 
-Frontend:
+Standard gate:
+
+```bash
+pnpm verify
+```
+
+Frontend production build:
 
 ```bash
 cd frontend
-pnpm nx build transformation-console
-pnpm exec tsc -p apps/transformation-console/tsconfig.app.json --noEmit
+pnpm exec nx build transformation-console
 ```
 
-Backend:
+Full gate including Docker image build:
 
 ```bash
-dotnet build backend/LargeRetailer.Modernisation.sln
-dotnet test backend/LargeRetailer.Modernisation.sln
+pnpm verify:full
+```
+
+Frontend-only checks:
+
+```bash
+pnpm frontend:lint
+pnpm frontend:typecheck
+pnpm --dir frontend exec playwright install
+pnpm frontend:e2e
+```
+
+Backend-only checks:
+
+```bash
+pnpm backend:build
+pnpm backend:test
 ```
 
 Docker:
@@ -72,6 +92,8 @@ Docker:
 docker compose build
 docker compose up
 ```
+
+See [docs/reviewer-runbook.md](docs/reviewer-runbook.md) for the reviewer smoke checklist and handover notes.
 
 ## What Is Real
 
