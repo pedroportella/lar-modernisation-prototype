@@ -1,0 +1,7 @@
+{
+  "name": "utils",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "library",
+  "sourceRoot": "libs/utils/src",
+  "tags": ["scope:frontend", "type:utils"]
+}

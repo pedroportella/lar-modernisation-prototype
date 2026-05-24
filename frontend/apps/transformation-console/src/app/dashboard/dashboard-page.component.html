@@ -1,0 +1,41 @@
+<section class="dashboard" aria-labelledby="page-title">
+  <div class="page-heading">
+    <div>
+      <p class="eyebrow">Large Australian Retailer</p>
+      <h1 id="page-title">Transformation Delivery Console</h1>
+      <p>
+        Workstream health is loaded from the .NET API through the frontend
+        services package.
+      </p>
+    </div>
+  </div>
+
+  @if (state$ | async; as state) {
+    <section class="metrics" aria-label="Program summary">
+      <div>
+        <span>Total workstreams</span>
+        <strong>{{ state.workstreams.length }}</strong>
+      </div>
+      <div>
+        <span>Needs attention</span>
+        <strong>{{ state.riskCount }}</strong>
+      </div>
+      <div>
+        <span>API source</span>
+        <strong>.NET SQLite</strong>
+      </div>
+    </section>
+
+    @if (state.status === 'loading') {
+      <p class="notice">Loading workstream data...</p>
+    } @else if (state.status === 'error') {
+      <p class="notice error">Unable to reach the backend API.</p>
+    } @else {
+      <section class="workstreams" aria-label="Modernisation workstreams">
+        @for (workstream of state.workstreams; track workstream.id) {
+          <lar-workstream-card [workstream]="workstream"></lar-workstream-card>
+        }
+      </section>
+    }
+  }
+</section>

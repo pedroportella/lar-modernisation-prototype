@@ -17,7 +17,7 @@ lar-modernisation-prototype/
 
 - Angular/Nx workspace under `frontend`.
 - .NET solution under `backend`.
-- Placeholder Angular console surface.
+- Angular app shell, routed dashboard and frontend packages.
 - EF Core SQLite persistence with deterministic seed data.
 - API endpoints: `/health`, `/api/workstreams`, `/api/workstreams/{id}`.
 - One git repository at this folder root for both frontend and backend.
@@ -57,6 +57,8 @@ dotnet test backend/LargeRetailer.Modernisation.sln
 ## What Is Real
 
 - Runnable Angular app scaffold.
+- Frontend package boundaries for services, UI assets, UI library, UI tokens and utils.
+- Dashboard workstream data loaded from the .NET API through `libs/services`.
 - Runnable .NET API with layered project structure.
 - EF Core SQLite database created locally at API startup.
 - Seeded workstream and initiative data served through application services.

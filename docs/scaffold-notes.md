@@ -20,6 +20,17 @@ The backend now has a real foundation:
 - `/health`, `/api/workstreams` and `/api/workstreams/{id}` endpoints;
 - focused backend unit and integration tests.
 
+## C4 Outcome
+
+The frontend now has package boundaries and renders real backend data:
+
+- `libs/services`: typed API client, DTOs and API base URL ownership;
+- `libs/ui-assets`: neutral product/client labels and generic mark metadata;
+- `libs/ui-library`: app shell, status pill and workstream card components;
+- `libs/ui-tokens`: global CSS custom properties for surfaces, text, spacing, status colours and focus;
+- `libs/utils`: pure status formatting and sorting helpers;
+- routed dashboard surface that fetches `/api/workstreams` from the .NET API.
+
 ## Next Chunk
 
-C4 should create the frontend packages, wire the services API client, and render dashboard data from the .NET API instead of local Angular placeholder data.
+C5 should add one feature slice at a time, starting with payment migration readiness: backend endpoint, services method, Angular route/view and a focused smoke check.

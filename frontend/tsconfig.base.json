@@ -4,6 +4,7 @@
     "rootDir": ".",
     "sourceMap": true,
     "declaration": false,
+    "baseUrl": ".",
     "moduleResolution": "node",
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
@@ -13,7 +14,12 @@
     "lib": ["es2020", "dom"],
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
-    "paths": {}
+    "paths": {
+      "@lar/services": ["libs/services/src/index.ts"],
+      "@lar/ui-assets": ["libs/ui-assets/src/index.ts"],
+      "@lar/ui-library": ["libs/ui-library/src/index.ts"],
+      "@lar/utils": ["libs/utils/src/index.ts"]
+    }
   },
   "exclude": ["node_modules", "tmp"]
 }

@@ -2,6 +2,7 @@ import {
   ApplicationConfig,
   provideBrowserGlobalErrorListeners,
 } from '@angular/core';
+import { provideHttpClient } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
 import { appRoutes } from './app.routes';
 import {
@@ -11,6 +12,7 @@ import {
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideHttpClient(),
     provideClientHydration(withEventReplay()),
     provideBrowserGlobalErrorListeners(),
     provideRouter(appRoutes),

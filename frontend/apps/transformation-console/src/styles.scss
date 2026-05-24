@@ -1,3 +1,5 @@
+@import "../../../libs/ui-tokens/src/styles.css";
+
 html {
   box-sizing: border-box;
 }
@@ -10,4 +12,7 @@ html {
 
 body {
   margin: 0;
+  background: var(--lar-surface-page);
+  color: var(--lar-text);
+  font-family: var(--lar-font-family);
 }

@@ -1,0 +1,7 @@
+{
+  "name": "services",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "library",
+  "sourceRoot": "libs/services/src",
+  "tags": ["scope:frontend", "type:services"]
+}

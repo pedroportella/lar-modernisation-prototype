@@ -1,0 +1,30 @@
+:root {
+  --lar-font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --lar-surface-page: #f5f7f4;
+  --lar-surface: #ffffff;
+  --lar-surface-muted: #eef4f1;
+  --lar-border: #d7e1dc;
+  --lar-border-strong: #b8c9c2;
+  --lar-text: #172326;
+  --lar-text-muted: #556468;
+  --lar-action: #006b73;
+  --lar-action-strong: #004f59;
+  --lar-accent: #237c5b;
+  --lar-warning: #a06400;
+  --lar-danger: #b42318;
+  --lar-success: #1d7044;
+  --lar-focus: #2f80ed;
+  --lar-shadow: 0 18px 42px rgba(21, 39, 42, 0.08);
+  --lar-radius: 8px;
+  --lar-space-1: 0.25rem;
+  --lar-space-2: 0.5rem;
+  --lar-space-3: 0.75rem;
+  --lar-space-4: 1rem;
+  --lar-space-5: 1.5rem;
+  --lar-space-6: 2rem;
+}
+
+:focus-visible {
+  outline: 3px solid var(--lar-focus);
+  outline-offset: 3px;
+}
