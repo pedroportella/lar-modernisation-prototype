@@ -20,6 +20,7 @@ lar-modernisation-prototype/
 - Angular app shell, routed dashboard and frontend packages.
 - EF Core SQLite persistence with deterministic seed data.
 - API endpoints for workstreams and five feature slices.
+- Docker Compose runtime with frontend and backend containers.
 - One git repository at this folder root for both frontend and backend.
 
 ## Run Locally
@@ -36,6 +37,17 @@ Backend:
 ```bash
 dotnet run --project backend/src/LargeRetailer.Modernisation.Api
 ```
+
+Full stack with Docker:
+
+```bash
+docker compose up --build
+```
+
+Open:
+
+- Frontend: http://localhost:4200
+- Backend health: http://localhost:5029/health
 
 ## Verify
 
@@ -54,12 +66,20 @@ dotnet build backend/LargeRetailer.Modernisation.sln
 dotnet test backend/LargeRetailer.Modernisation.sln
 ```
 
+Docker:
+
+```bash
+docker compose build
+docker compose up
+```
+
 ## What Is Real
 
 - Runnable Angular app scaffold.
 - Frontend package boundaries for services, UI assets, UI library, UI tokens and utils.
 - Dashboard workstream data loaded from the .NET API through `libs/services`.
 - Feature routes for payments, warehouse, HR uplift, insights and automation.
+- Docker Compose stack for local full-stack review.
 - Runnable .NET API with layered project structure.
 - EF Core SQLite database created locally at API startup.
 - Seeded workstream and initiative data served through application services.

@@ -1,0 +1,14 @@
+.git
+**/bin
+**/obj
+**/node_modules
+**/.angular
+**/.nx/cache
+**/dist
+**/coverage
+**/playwright-report
+**/test-results
+**/*.db
+**/*.db-shm
+**/*.db-wal
+.DS_Store

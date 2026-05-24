@@ -48,6 +48,15 @@ Each slice has:
 - an Angular route and view;
 - browser-smoke coverage against the running backend and frontend.
 
+## C6 Outcome
+
+The prototype can run as a two-container local stack:
+
+- `backend`: .NET API published into an ASP.NET runtime image and exposed on host port `5029`;
+- `frontend`: Angular production build served by nginx on host port `4200`;
+- runtime frontend config points browser API calls at `http://localhost:5029`;
+- SQLite persists in a named Docker volume at `/data/modernisation.db`.
+
 ## Next Chunk
 
-C6 should add Dockerfiles and Compose wiring so the Angular frontend and .NET backend can run together from the repo root.
+C7 should tighten final quality gates, add final smoke evidence, and polish the reviewer runbook.

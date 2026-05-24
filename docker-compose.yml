@@ -1,0 +1,26 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    environment:
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__ModernisationDb: Data Source=/data/modernisation.db
+    ports:
+      - "5029:8080"
+    volumes:
+      - backend-data:/data
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    depends_on:
+      - backend
+    ports:
+      - "4200:80"
+    volumes:
+      - ./frontend/docker/runtime-config.js:/usr/share/nginx/html/assets/runtime-config.js:ro
+
+volumes:
+  backend-data:
