@@ -9,6 +9,7 @@ This prototype is one git repository with an Angular/Nx frontend and a layered .
 - Backend API: `backend/src/LargeRetailer.Modernisation.Api`
 - Backend tests: `backend/tests`
 - Docker runtime: `docker-compose.yml`
+- CI workflow: `.github/workflows/ci.yml`
 
 ## Quality Gates
 
@@ -86,3 +87,4 @@ With the Docker stack running, verify:
 - External integrations are simulated through seeded SQLite data.
 - Docker persists SQLite in the `backend-data` named volume.
 - Runtime frontend API configuration is intentionally outside the compiled Angular bundle so Docker/local API targets can be changed without rebuilding.
+- CI and deployment packaging notes live in `docs/ci-deployment-notes.md`.

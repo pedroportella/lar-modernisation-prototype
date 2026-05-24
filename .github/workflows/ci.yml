@@ -1,0 +1,92 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  frontend:
+    name: Frontend
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.18.3
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        working-directory: frontend
+        run: pnpm exec nx lint transformation-console --skip-nx-cache --output-style=stream
+
+      - name: Typecheck
+        working-directory: frontend
+        run: pnpm exec tsc -p apps/transformation-console/tsconfig.app.json --noEmit
+
+      - name: Build
+        working-directory: frontend
+        run: pnpm exec nx build transformation-console --skip-nx-cache --output-style=stream
+
+      - name: Install Playwright browsers
+        working-directory: frontend
+        run: pnpm exec playwright install --with-deps
+
+      - name: Smoke test routes
+        working-directory: frontend
+        run: pnpm exec nx e2e transformation-console-e2e --skip-nx-cache --output-style=stream
+
+  backend:
+    name: Backend
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore
+        run: dotnet restore backend/LargeRetailer.Modernisation.sln
+
+      - name: Build
+        run: dotnet build backend/LargeRetailer.Modernisation.sln --no-restore /nr:false /m:1
+
+      - name: Test
+        run: dotnet test backend/LargeRetailer.Modernisation.sln --no-restore /nr:false /m:1
+
+  docker:
+    name: Docker Images
+    runs-on: ubuntu-latest
+    needs:
+      - frontend
+      - backend
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build images
+        run: docker compose build

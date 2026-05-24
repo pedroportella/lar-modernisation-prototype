@@ -67,6 +67,16 @@ The prototype now has a repeatable reviewer handover:
 - a reviewer runbook covering repository orientation, quality gates, runtime commands and manual Docker smoke checks;
 - README verification instructions that point reviewers to the standard and full gates.
 
+## C8 Outcome
+
+The prototype now has CI and deployment packaging guidance:
+
+- GitHub Actions workflow for frontend lint, typecheck, production build and Playwright route smoke tests;
+- backend restore, build and test gates with MSBuild node reuse and parallel workers disabled for repeatability;
+- Docker image build gate that runs after frontend and backend jobs pass;
+- CI/deployment notes describing the Compose package, runtime config boundary and production promotion path;
+- README and reviewer runbook links so reviewers can find the pipeline and deployment notes quickly.
+
 ## Next Chunk
 
-C8 can focus on deployment packaging, CI workflow definition or richer domain behaviour depending on interview priorities.
+C9 can focus on richer domain behaviour, observability, deployment manifests or interview narrative polish.

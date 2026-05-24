@@ -21,6 +21,7 @@ lar-modernisation-prototype/
 - EF Core SQLite persistence with deterministic seed data.
 - API endpoints for workstreams and five feature slices.
 - Docker Compose runtime with frontend and backend containers.
+- GitHub Actions CI workflow for frontend, backend and Docker image gates.
 - One git repository at this folder root for both frontend and backend.
 
 ## Run Locally
@@ -94,6 +95,7 @@ docker compose up
 ```
 
 See [docs/reviewer-runbook.md](docs/reviewer-runbook.md) for the reviewer smoke checklist and handover notes.
+See [docs/ci-deployment-notes.md](docs/ci-deployment-notes.md) for CI and deployment packaging notes.
 
 ## What Is Real
 
@@ -102,6 +104,7 @@ See [docs/reviewer-runbook.md](docs/reviewer-runbook.md) for the reviewer smoke 
 - Dashboard workstream data loaded from the .NET API through `libs/services`.
 - Feature routes for payments, warehouse, HR uplift, insights and automation.
 - Docker Compose stack for local full-stack review.
+- GitHub Actions workflow that validates frontend, backend and Docker packaging.
 - Runnable .NET API with layered project structure.
 - EF Core SQLite database created locally at API startup.
 - Seeded workstream and initiative data served through application services.

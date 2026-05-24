@@ -1,0 +1,50 @@
+# CI and Deployment Notes
+
+## Continuous Integration
+
+The GitHub Actions workflow at `.github/workflows/ci.yml` validates the prototype in three jobs:
+
+- `Frontend`: installs the Angular workspace, runs lint, typecheck, production build and Playwright route smoke tests.
+- `Backend`: restores, builds and tests the .NET solution.
+- `Docker Images`: builds the frontend and backend container images after both code gates pass.
+
+The workflow runs on pull requests, pushes to `main` and manual dispatches.
+
+## Runtime Packaging
+
+The local deployment package is the Docker Compose stack:
+
+- `backend`: ASP.NET runtime image exposing the API on container port `8080` and host port `5029`.
+- `frontend`: nginx image serving the Angular production build on container port `80` and host port `4200`.
+- `backend-data`: named volume for SQLite state at `/data/modernisation.db`.
+
+Frontend API configuration is loaded from `/assets/runtime-config.js`, so the browser-facing API URL can change without rebuilding Angular.
+
+## Promotion Path
+
+A production path would keep the same separation of concerns:
+
+- publish the backend image to a registry and run it behind HTTPS;
+- publish the frontend image or static assets to a web host/CDN;
+- replace SQLite with managed relational storage;
+- inject runtime API URL, CORS origins and database connection strings through environment-specific configuration;
+- add identity, observability, secret management and deployment approvals before any real client data is used.
+
+## Local Release Check
+
+Before sharing a build with reviewers:
+
+```bash
+pnpm verify
+cd frontend
+pnpm exec nx build transformation-console
+cd ..
+pnpm frontend:e2e
+pnpm docker:build
+```
+
+If Playwright browsers are missing locally, run:
+
+```bash
+pnpm --dir frontend exec playwright install
+```
