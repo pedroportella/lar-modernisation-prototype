@@ -13,12 +13,13 @@ lar-modernisation-prototype/
   docs/       handover notes for reviewers
 ```
 
-## Current C2 Scope
+## Current Scope
 
 - Angular/Nx workspace under `frontend`.
 - .NET solution under `backend`.
 - Placeholder Angular console surface.
-- Placeholder API endpoints: `/health`, `/api/workstreams`, `/api/workstreams/{id}`.
+- EF Core SQLite persistence with deterministic seed data.
+- API endpoints: `/health`, `/api/workstreams`, `/api/workstreams/{id}`.
 - One git repository at this folder root for both frontend and backend.
 
 ## Run Locally
@@ -56,9 +57,10 @@ dotnet test backend/LargeRetailer.Modernisation.sln
 ## What Is Real
 
 - Runnable Angular app scaffold.
-- Runnable .NET API scaffold.
-- Layered backend project structure.
-- Local placeholder endpoints and tests.
+- Runnable .NET API with layered project structure.
+- EF Core SQLite database created locally at API startup.
+- Seeded workstream and initiative data served through application services.
+- Backend unit and integration tests.
 
 ## What Is Simulated
 

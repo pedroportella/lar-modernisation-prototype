@@ -1,6 +1,12 @@
+using LargeRetailer.Modernisation.Application.Workstreams;
+using LargeRetailer.Modernisation.Infrastructure;
+using LargeRetailer.Modernisation.Infrastructure.Persistence;
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOpenApi();
+builder.Services.AddScoped<IWorkstreamQueryService, WorkstreamQueryService>();
+builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AngularDev", policy =>
@@ -21,27 +27,38 @@ if (app.Environment.IsDevelopment())
 
 app.UseCors("AngularDev");
 
-var workstreams = new[]
+using (var scope = app.Services.CreateScope())
 {
-    new WorkstreamDto("payments", "Payment migration", "Scaffolded", "Stripe-style adapter boundary reserved for C5."),
-    new WorkstreamDto("warehouse", "Warehouse optimisation", "Scaffolded", "Operational signal endpoints reserved for C5."),
-    new WorkstreamDto("hr-platform", "HR platform uplift", "Scaffolded", "Roadmap and integration task endpoints reserved for C5."),
-    new WorkstreamDto("insights", "Wayfinding insights", "Scaffolded", "Decision-support metric endpoints reserved for C5."),
-    new WorkstreamDto("automation", "Automation opportunity queue", "Scaffolded", "AI governance and recommendation boundary reserved for C5."),
-};
+    var dbContext = scope.ServiceProvider.GetRequiredService<ModernisationDbContext>();
+    await ModernisationSeedData.EnsureSeededAsync(dbContext);
+}
 
-app.MapGet("/health", () => Results.Ok(new { status = "Healthy", service = "LargeRetailer.Modernisation.Api" }))
+app.MapGet("/health", () => Results.Ok(new HealthResponse("Healthy", "LargeRetailer.Modernisation.Api")))
     .WithName("Health");
 
-app.MapGet("/api/workstreams", () => Results.Ok(workstreams))
+app.MapGet("/api/workstreams", async (
+        IWorkstreamQueryService workstreamQueryService,
+        CancellationToken cancellationToken) =>
+    {
+        var workstreams = await workstreamQueryService.ListAsync(cancellationToken);
+
+        return Results.Ok(workstreams);
+    })
     .WithName("GetWorkstreams");
 
-app.MapGet("/api/workstreams/{id}", (string id) =>
-    workstreams.FirstOrDefault(workstream => workstream.Id == id) is { } workstream
-        ? Results.Ok(workstream)
-        : Results.NotFound())
+app.MapGet("/api/workstreams/{id}", async (
+        string id,
+        IWorkstreamQueryService workstreamQueryService,
+        CancellationToken cancellationToken) =>
+    {
+        var workstream = await workstreamQueryService.GetByIdAsync(id, cancellationToken);
+
+        return workstream is null ? Results.NotFound() : Results.Ok(workstream);
+    })
     .WithName("GetWorkstreamById");
 
 app.Run();
 
-record WorkstreamDto(string Id, string Name, string Status, string Summary);
+public sealed record HealthResponse(string Status, string Service);
+
+public partial class Program;

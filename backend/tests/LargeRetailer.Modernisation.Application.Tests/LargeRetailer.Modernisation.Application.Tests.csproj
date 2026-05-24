@@ -20,6 +20,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\LargeRetailer.Modernisation.Application\LargeRetailer.Modernisation.Application.csproj" />
+    <ProjectReference Include="..\..\src\LargeRetailer.Modernisation.Domain\LargeRetailer.Modernisation.Domain.csproj" />
   </ItemGroup>
 
 </Project>
