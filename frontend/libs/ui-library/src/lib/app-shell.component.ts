@@ -165,6 +165,7 @@ export class AppShellComponent {
   protected readonly navItems = [
     { label: 'Dashboard', path: '/' },
     { label: 'Payments', path: '/payments' },
+    { label: 'Readiness', path: '/readiness' },
     { label: 'Warehouse', path: '/warehouse' },
     { label: 'HR uplift', path: '/hr-platform' },
     { label: 'Insights', path: '/insights' },

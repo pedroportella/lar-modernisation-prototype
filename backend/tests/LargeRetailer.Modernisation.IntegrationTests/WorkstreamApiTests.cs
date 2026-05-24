@@ -92,6 +92,36 @@ public sealed class WorkstreamApiTests
         Assert.Equal(1, status.Counts.AutomationCandidates);
     }
 
+    [Fact]
+    public async Task Program_readiness_endpoint_returns_derived_delivery_posture()
+    {
+        var databasePath = Path.Combine(Path.GetTempPath(), $"lar-modernisation-{Guid.NewGuid():N}.db");
+
+        await using var application = new WebApplicationFactory<Program>()
+            .WithWebHostBuilder(builder =>
+            {
+                builder.ConfigureAppConfiguration((_, configurationBuilder) =>
+                {
+                    configurationBuilder.AddInMemoryCollection(new Dictionary<string, string?>
+                    {
+                        ["ConnectionStrings:ModernisationDb"] = $"Data Source={databasePath}"
+                    });
+                });
+            });
+
+        var client = application.CreateClient();
+
+        var readiness = await client.GetFromJsonAsync<ProgramReadinessResponse>(
+            "/api/program/readiness",
+            CancellationToken.None);
+
+        Assert.NotNull(readiness);
+        Assert.Equal("AtRisk", readiness.OverallStatus);
+        Assert.Equal(66, readiness.ReadinessScore);
+        Assert.Contains(readiness.Signals, signal => signal.Label == "Needs attention" && signal.Value == 3);
+        Assert.Contains(readiness.RecommendedActions, action => action.WorkstreamId == "payments");
+    }
+
     [Theory]
     [InlineData("/api/payments/migration-readiness", 2)]
     [InlineData("/api/warehouse/optimisation", 1)]
@@ -147,4 +177,21 @@ public sealed class WorkstreamApiTests
         int HrPlatformTasks,
         int InsightMetrics,
         int AutomationCandidates);
+
+    private sealed record ProgramReadinessResponse(
+        string OverallStatus,
+        int ReadinessScore,
+        string Summary,
+        IReadOnlyCollection<ReadinessSignalResponse> Signals,
+        IReadOnlyCollection<RecommendedActionResponse> RecommendedActions);
+
+    private sealed record ReadinessSignalResponse(string Label, int Value, string Status);
+
+    private sealed record RecommendedActionResponse(
+        string WorkstreamId,
+        string WorkstreamName,
+        string Initiative,
+        string Owner,
+        string Status,
+        string NextAction);
 }

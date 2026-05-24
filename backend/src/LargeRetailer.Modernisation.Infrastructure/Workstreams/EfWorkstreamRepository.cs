@@ -10,6 +10,7 @@ public sealed class EfWorkstreamRepository(ModernisationDbContext dbContext) : I
     public async Task<IReadOnlyCollection<Workstream>> ListAsync(CancellationToken cancellationToken) =>
         await dbContext.Workstreams
             .AsNoTracking()
+            .Include(workstream => workstream.Initiatives)
             .OrderBy(workstream => workstream.Priority)
             .ToArrayAsync(cancellationToken);
 

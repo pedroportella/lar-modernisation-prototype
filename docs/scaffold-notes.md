@@ -90,4 +90,17 @@ The prototype now has a small observability slice:
 
 ## Next Chunk
 
-C10 can focus on richer domain behaviour, observability depth, deployment manifests or interview narrative polish.
+## C10 Outcome
+
+The prototype now has a derived program-readiness slice:
+
+- application service computes overall status, readiness score, signals and recommended next actions from workstream and initiative data;
+- `/api/program/readiness` exposes the derived delivery posture;
+- Angular `Readiness` route renders the score, signals and recommended next actions;
+- backend application/integration coverage proves the score and endpoint shape;
+- frontend route smoke coverage proves the readiness page through the typed API boundary;
+- README and reviewer runbook include the new endpoint and manual smoke step.
+
+## Next Chunk
+
+C11 can focus on observability depth, deployment manifests, richer domain workflows or interview narrative polish.

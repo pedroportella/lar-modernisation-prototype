@@ -8,6 +8,7 @@ import {
   InsightMetric,
   OperationalStatus,
   PaymentReadinessItem,
+  ProgramReadiness,
   WarehouseSignal,
   Workstream,
   WorkstreamDetail,
@@ -50,5 +51,9 @@ export class TransformationApiService {
 
   getOperationalStatus(): Observable<OperationalStatus> {
     return this.http.get<OperationalStatus>(`${this.apiBaseUrl}/api/operations/status`);
+  }
+
+  getProgramReadiness(): Observable<ProgramReadiness> {
+    return this.http.get<ProgramReadiness>(`${this.apiBaseUrl}/api/program/readiness`);
   }
 }

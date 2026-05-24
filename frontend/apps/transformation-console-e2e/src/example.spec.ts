@@ -88,6 +88,28 @@ const operationsStatus = {
   },
 };
 
+const programReadiness = {
+  overallStatus: 'AtRisk',
+  readinessScore: 66,
+  summary: '3 of 5 workstreams need active delivery attention.',
+  signals: [
+    { label: 'Total workstreams', value: 5, status: 'OnTrack' },
+    { label: 'Needs attention', value: 3, status: 'AtRisk' },
+    { label: 'On track', value: 2, status: 'OnTrack' },
+    { label: 'Monitoring', value: 2, status: 'Monitoring' },
+  ],
+  recommendedActions: [
+    {
+      workstreamId: 'payments',
+      workstreamName: 'Payment migration',
+      initiative: 'Cutover readiness review',
+      owner: 'Release lead',
+      status: 'AtRisk',
+      nextAction: 'Separate PCI review from local prototype assumptions.',
+    },
+  ],
+};
+
 test.beforeEach(async ({ page }) => {
   await page.route('**/api/workstreams', async (route) => {
     await route.fulfill({ json: workstreams });
@@ -101,6 +123,10 @@ test.beforeEach(async ({ page }) => {
 
   await page.route('**/api/operations/status', async (route) => {
     await route.fulfill({ json: operationsStatus });
+  });
+
+  await page.route('**/api/program/readiness', async (route) => {
+    await route.fulfill({ json: programReadiness });
   });
 });
 
@@ -120,6 +146,16 @@ test('renders operations status from the API boundary', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Runtime Status' })).toBeVisible();
   await expect(page.getByText('SQLite Reachable')).toBeVisible();
   await expect(page.getByText('Payment readiness')).toBeVisible();
+  await expect(page.getByText('Unable to reach the backend API.')).toBeHidden();
+});
+
+test('renders program readiness from derived API posture', async ({ page }) => {
+  await page.goto('/readiness');
+
+  await expect(page.getByRole('heading', { name: 'Delivery Readiness' })).toBeVisible();
+  await expect(page.getByText('66')).toBeVisible();
+  await expect(page.getByText('Needs attention')).toBeVisible();
+  await expect(page.getByText('Cutover readiness review')).toBeVisible();
   await expect(page.getByText('Unable to reach the backend API.')).toBeHidden();
 });
 

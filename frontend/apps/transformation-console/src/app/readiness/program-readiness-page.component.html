@@ -1,0 +1,57 @@
+<section class="readiness" aria-labelledby="readiness-title">
+  <div class="heading">
+    <p class="eyebrow">Program readiness</p>
+    <h1 id="readiness-title">Delivery Readiness</h1>
+    <p>Derived delivery posture from workstream health and current initiative next actions.</p>
+  </div>
+
+  @if (state$ | async; as state) {
+    @if (state.status === 'loading') {
+      <p class="notice">Loading readiness posture...</p>
+    } @else if (state.status === 'error') {
+      <p class="notice error">Unable to reach the backend API.</p>
+    } @else {
+      <section class="hero-metrics" aria-label="Readiness summary">
+        <div class="score">
+          <span>Readiness score</span>
+          <strong>{{ state.readiness.readinessScore }}</strong>
+        </div>
+        <div>
+          <span>Overall status</span>
+          <strong>
+            <lar-status-pill [status]="state.readiness.overallStatus"></lar-status-pill>
+          </strong>
+        </div>
+        <div class="summary">
+          <span>Summary</span>
+          <strong>{{ state.readiness.summary }}</strong>
+        </div>
+      </section>
+
+      <section class="signals" aria-label="Readiness signals">
+        @for (signal of state.readiness.signals; track signal.label) {
+          <div>
+            <span>{{ signal.label }}</span>
+            <strong>{{ signal.value }}</strong>
+            <lar-status-pill [status]="signal.status"></lar-status-pill>
+          </div>
+        }
+      </section>
+
+      <section class="actions" aria-label="Recommended next actions">
+        <h2>Recommended Next Actions</h2>
+        @for (action of state.readiness.recommendedActions; track action.workstreamId + action.initiative) {
+          <article>
+            <div>
+              <span>{{ action.workstreamName }}</span>
+              <h3>{{ action.initiative }}</h3>
+            </div>
+            <lar-status-pill [status]="action.status"></lar-status-pill>
+            <p>{{ action.nextAction }}</p>
+            <small>{{ action.owner }}</small>
+          </article>
+        }
+      </section>
+    }
+  }
+</section>

@@ -84,3 +84,26 @@ export interface OperationalDatasetCounts {
   insightMetrics: number;
   automationCandidates: number;
 }
+
+export interface ProgramReadiness {
+  overallStatus: string;
+  readinessScore: number;
+  summary: string;
+  signals: ReadinessSignal[];
+  recommendedActions: RecommendedAction[];
+}
+
+export interface ReadinessSignal {
+  label: string;
+  value: number;
+  status: string;
+}
+
+export interface RecommendedAction {
+  workstreamId: string;
+  workstreamName: string;
+  initiative: string;
+  owner: string;
+  status: string;
+  nextAction: string;
+}

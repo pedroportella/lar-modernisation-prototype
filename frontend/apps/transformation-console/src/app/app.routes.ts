@@ -2,6 +2,7 @@ import { Route } from '@angular/router';
 import { DashboardPageComponent } from './dashboard/dashboard-page.component';
 import { FeatureSlicePageComponent } from './features/feature-slice-page.component';
 import { OperationsStatusPageComponent } from './operations/operations-status-page.component';
+import { ProgramReadinessPageComponent } from './readiness/program-readiness-page.component';
 
 export const appRoutes: Route[] = [
   {
@@ -14,6 +15,11 @@ export const appRoutes: Route[] = [
     component: FeatureSlicePageComponent,
     title: 'Payment Migration Readiness',
     data: { slice: 'payments' },
+  },
+  {
+    path: 'readiness',
+    component: ProgramReadinessPageComponent,
+    title: 'Program Readiness',
   },
   {
     path: 'warehouse',

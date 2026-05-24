@@ -1,4 +1,5 @@
 using LargeRetailer.Modernisation.Application.Features;
+using LargeRetailer.Modernisation.Application.Readiness;
 using LargeRetailer.Modernisation.Application.Workstreams;
 using LargeRetailer.Modernisation.Infrastructure;
 using LargeRetailer.Modernisation.Infrastructure.Persistence;
@@ -8,6 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOpenApi();
 builder.Services.AddScoped<IFeatureSliceQueryService, FeatureSliceQueryService>();
+builder.Services.AddScoped<IProgramReadinessQueryService, ProgramReadinessQueryService>();
 builder.Services.AddScoped<IWorkstreamQueryService, WorkstreamQueryService>();
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddCors(options =>
@@ -83,6 +85,12 @@ app.MapGet("/api/operations/status", async (
         return Results.Ok(response);
     })
     .WithName("GetOperationalStatus");
+
+app.MapGet("/api/program/readiness", async (
+        IProgramReadinessQueryService programReadinessQueryService,
+        CancellationToken cancellationToken) =>
+    Results.Ok(await programReadinessQueryService.GetAsync(cancellationToken)))
+    .WithName("GetProgramReadiness");
 
 app.MapGet("/api/workstreams", async (
         IWorkstreamQueryService workstreamQueryService,
