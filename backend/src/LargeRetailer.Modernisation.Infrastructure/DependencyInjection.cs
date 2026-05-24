@@ -1,4 +1,6 @@
+using LargeRetailer.Modernisation.Application.Features;
 using LargeRetailer.Modernisation.Application.Workstreams;
+using LargeRetailer.Modernisation.Infrastructure.Features;
 using LargeRetailer.Modernisation.Infrastructure.Persistence;
 using LargeRetailer.Modernisation.Infrastructure.Workstreams;
 using Microsoft.EntityFrameworkCore;
@@ -15,6 +17,7 @@ public static class DependencyInjection
             ?? "Data Source=modernisation.db";
 
         services.AddDbContext<ModernisationDbContext>(options => options.UseSqlite(connectionString));
+        services.AddScoped<IFeatureSliceRepository, EfFeatureSliceRepository>();
         services.AddScoped<IWorkstreamRepository, EfWorkstreamRepository>();
 
         return services;

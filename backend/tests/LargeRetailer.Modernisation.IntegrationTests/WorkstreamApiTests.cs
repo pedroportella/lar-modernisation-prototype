@@ -59,6 +59,36 @@ public sealed class WorkstreamApiTests
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
+    [Theory]
+    [InlineData("/api/payments/migration-readiness", 2)]
+    [InlineData("/api/warehouse/optimisation", 1)]
+    [InlineData("/api/hr/platform-uplift", 1)]
+    [InlineData("/api/insights/wayfinding", 1)]
+    [InlineData("/api/automation/candidates", 1)]
+    public async Task Feature_slice_endpoints_return_seeded_data(string endpoint, int expectedCount)
+    {
+        var databasePath = Path.Combine(Path.GetTempPath(), $"lar-modernisation-{Guid.NewGuid():N}.db");
+
+        await using var application = new WebApplicationFactory<Program>()
+            .WithWebHostBuilder(builder =>
+            {
+                builder.ConfigureAppConfiguration((_, configurationBuilder) =>
+                {
+                    configurationBuilder.AddInMemoryCollection(new Dictionary<string, string?>
+                    {
+                        ["ConnectionStrings:ModernisationDb"] = $"Data Source={databasePath}"
+                    });
+                });
+            });
+
+        var client = application.CreateClient();
+
+        var records = await client.GetFromJsonAsync<object[]>(endpoint, CancellationToken.None);
+
+        Assert.NotNull(records);
+        Assert.Equal(expectedCount, records.Length);
+    }
+
     private sealed record WorkstreamResponse(
         string Id,
         string Name,

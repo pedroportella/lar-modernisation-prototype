@@ -21,9 +21,15 @@ import {
         </a>
 
         <nav>
-          <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
-            Dashboard
-          </a>
+          @for (item of navItems; track item.path) {
+            <a
+              [routerLink]="item.path"
+              routerLinkActive="active"
+              [routerLinkActiveOptions]="{ exact: item.path === '/' }"
+            >
+              {{ item.label }}
+            </a>
+          }
         </nav>
       </aside>
 
@@ -156,4 +162,12 @@ export class AppShellComponent {
   protected readonly productName = LAR_PRODUCT_NAME;
   protected readonly clientLabel = LAR_NEUTRAL_CLIENT_LABEL;
   protected readonly markInitials = LAR_MARK_INITIALS;
+  protected readonly navItems = [
+    { label: 'Dashboard', path: '/' },
+    { label: 'Payments', path: '/payments' },
+    { label: 'Warehouse', path: '/warehouse' },
+    { label: 'HR uplift', path: '/hr-platform' },
+    { label: 'Insights', path: '/insights' },
+    { label: 'Automation', path: '/automation' },
+  ];
 }

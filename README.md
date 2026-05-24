@@ -19,7 +19,7 @@ lar-modernisation-prototype/
 - .NET solution under `backend`.
 - Angular app shell, routed dashboard and frontend packages.
 - EF Core SQLite persistence with deterministic seed data.
-- API endpoints: `/health`, `/api/workstreams`, `/api/workstreams/{id}`.
+- API endpoints for workstreams and five feature slices.
 - One git repository at this folder root for both frontend and backend.
 
 ## Run Locally
@@ -59,10 +59,24 @@ dotnet test backend/LargeRetailer.Modernisation.sln
 - Runnable Angular app scaffold.
 - Frontend package boundaries for services, UI assets, UI library, UI tokens and utils.
 - Dashboard workstream data loaded from the .NET API through `libs/services`.
+- Feature routes for payments, warehouse, HR uplift, insights and automation.
 - Runnable .NET API with layered project structure.
 - EF Core SQLite database created locally at API startup.
 - Seeded workstream and initiative data served through application services.
 - Backend unit and integration tests.
+
+## API Surface
+
+```text
+GET /health
+GET /api/workstreams
+GET /api/workstreams/{id}
+GET /api/payments/migration-readiness
+GET /api/warehouse/optimisation
+GET /api/hr/platform-uplift
+GET /api/insights/wayfinding
+GET /api/automation/candidates
+```
 
 ## What Is Simulated
 

@@ -31,6 +31,23 @@ The frontend now has package boundaries and renders real backend data:
 - `libs/utils`: pure status formatting and sorting helpers;
 - routed dashboard surface that fetches `/api/workstreams` from the .NET API.
 
+## C5 Outcome
+
+The prototype now has five thin vertical feature slices:
+
+- payment migration readiness;
+- warehouse optimisation;
+- HR platform uplift;
+- wayfinding insights;
+- automation opportunity queue.
+
+Each slice has:
+
+- a backend endpoint over seeded relational data;
+- a typed method in `libs/services`;
+- an Angular route and view;
+- browser-smoke coverage against the running backend and frontend.
+
 ## Next Chunk
 
-C5 should add one feature slice at a time, starting with payment migration readiness: backend endpoint, services method, Angular route/view and a focused smoke check.
+C6 should add Dockerfiles and Compose wiring so the Angular frontend and .NET backend can run together from the repo root.

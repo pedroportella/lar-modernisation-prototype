@@ -1,0 +1,53 @@
+@if (state$ | async; as state) {
+  <section class="feature" aria-labelledby="feature-title">
+    <div class="heading">
+      <p class="eyebrow">{{ state.config.eyebrow }}</p>
+      <h1 id="feature-title">{{ state.config.title }}</h1>
+      <p>{{ state.config.summary }}</p>
+    </div>
+
+    <section class="summary" aria-label="Feature summary">
+      <div>
+        <span>Records</span>
+        <strong>{{ state.records.length }}</strong>
+      </div>
+      <div>
+        <span>API source</span>
+        <strong>{{ state.config.sourceLabel }}</strong>
+      </div>
+    </section>
+
+    @if (state.status === 'loading') {
+      <p class="notice">Loading feature data...</p>
+    } @else if (state.status === 'error') {
+      <p class="notice error">Unable to reach the backend API.</p>
+    } @else {
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              @for (column of state.config.columns; track column.key) {
+                <th scope="col">{{ column.label }}</th>
+              }
+            </tr>
+          </thead>
+          <tbody>
+            @for (record of state.records; track record['id']) {
+              <tr>
+                @for (column of state.config.columns; track column.key) {
+                  <td>
+                    @if (isStatusColumn(column, state.config)) {
+                      <lar-status-pill [status]="valueFor(record, column).toString()"></lar-status-pill>
+                    } @else {
+                      {{ valueFor(record, column) }}
+                    }
+                  </td>
+                }
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </section>
+}
