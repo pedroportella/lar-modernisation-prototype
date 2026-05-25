@@ -86,10 +86,21 @@ With the Docker stack running, verify:
 - `http://localhost:4200/operations` renders `Runtime Status`.
 - The app does not show `Unable to reach the backend API.`
 
+## Five-Minute Demo Path
+
+Use this path when walking a reviewer through the prototype:
+
+1. Start at `http://localhost:4200/` and show the portfolio view of seeded workstreams.
+2. Open `Readiness` to show the derived program score, signals and recommended next actions.
+3. Open `Payments` and `Warehouse` to show thin vertical slices over the same backend data shape.
+4. Open `Automation` to show prioritised opportunity triage.
+5. Open `Operations` last to show runtime readiness, SQLite reachability and seeded data counts.
+
 ## Reviewer Notes
 
 - The client is intentionally anonymised as a large Australian retailer.
 - External integrations are simulated through seeded SQLite data.
 - Docker persists SQLite in the `backend-data` named volume.
 - Runtime frontend API configuration is intentionally outside the compiled Angular bundle so Docker/local API targets can be changed without rebuilding.
+- Architecture and decision notes live in `docs/architecture.md` and `docs/decisions.md`.
 - CI and deployment packaging notes live in `docs/ci-deployment-notes.md`.

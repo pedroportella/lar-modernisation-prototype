@@ -1,0 +1,58 @@
+# Architecture
+
+This prototype is a single repository with two independently runnable application areas:
+
+- `frontend`: Nx Angular workspace for the transformation console.
+- `backend`: layered .NET solution for API, application, domain, infrastructure and tests.
+
+The repository root owns shared developer workflow, Docker Compose and CI orchestration. The frontend and backend keep their own native toolchains, dependency manifests and build outputs.
+
+## Runtime Flow
+
+```mermaid
+flowchart LR
+  Browser["Browser"]
+  Angular["Angular transformation console"]
+  Api[".NET minimal API"]
+  App["Application query services"]
+  Domain["Domain model"]
+  Ef["EF Core infrastructure"]
+  Sqlite["SQLite database"]
+
+  Browser --> Angular
+  Angular -->|typed services| Api
+  Api --> App
+  App --> Domain
+  App --> Ef
+  Ef --> Sqlite
+```
+
+Angular reads runtime API configuration from `frontend/apps/transformation-console/public/assets/runtime-config.js`, which allows the same production build to target either local development or Docker-hosted API URLs.
+
+The .NET API creates and seeds the SQLite database on startup. That keeps the prototype self-contained while still exercising realistic persistence, query services and integration tests.
+
+## Frontend Shape
+
+- `apps/transformation-console`: routed Angular application.
+- `apps/transformation-console-e2e`: Playwright smoke tests.
+- `libs/services`: typed API client and DTO contracts.
+- `libs/ui-library`: shared shell and UI components.
+- `libs/ui-assets`: neutral naming and brand metadata.
+- `libs/ui-tokens`: design tokens.
+- `libs/utils`: small pure helpers.
+
+This follows the Angular/Nx convention of `apps` plus `libs`, instead of a Next.js-style `packages` folder.
+
+## Backend Shape
+
+- `LargeRetailer.Modernisation.Api`: HTTP endpoints, health checks and dependency registration.
+- `LargeRetailer.Modernisation.Application`: query services and DTOs.
+- `LargeRetailer.Modernisation.Domain`: entities and domain-facing types.
+- `LargeRetailer.Modernisation.Infrastructure`: EF Core SQLite persistence and seed data.
+- `tests`: API, application and integration test projects.
+
+The API exposes health, operations status, program readiness, workstreams and five feature slices. Feature data is intentionally seeded but flows through the same boundaries a production implementation would extend.
+
+## Verification
+
+The standard gate is `pnpm verify`. The full packaging gate is `pnpm verify:full`, which adds Docker image builds after frontend and backend checks.

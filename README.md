@@ -1,6 +1,6 @@
 # Large Australian Retailer Modernisation Prototype
 
-Working scaffold for an interview prototype: an Angular transformation console backed by a .NET API.
+Working prototype for an interview: an Angular transformation console backed by a .NET API.
 
 The client framing is intentionally neutral. The prototype demonstrates delivery judgement for a large Australian retailer modernisation program without naming or copying a real client.
 
@@ -17,7 +17,7 @@ lar-modernisation-prototype/
 
 - Angular/Nx workspace under `frontend`.
 - .NET solution under `backend`.
-- Angular app shell, routed dashboard and frontend packages.
+- Angular app shell, routed dashboard and frontend libraries.
 - EF Core SQLite persistence with deterministic seed data.
 - API endpoints for workstreams and five feature slices.
 - Program readiness endpoint and route for derived delivery posture.
@@ -97,12 +97,14 @@ docker compose up
 ```
 
 See [docs/reviewer-runbook.md](docs/reviewer-runbook.md) for the reviewer smoke checklist and handover notes.
+See [docs/architecture.md](docs/architecture.md) for the application shape and runtime flow.
+See [docs/decisions.md](docs/decisions.md) for the key technical decisions behind the prototype.
 See [docs/ci-deployment-notes.md](docs/ci-deployment-notes.md) for CI and deployment packaging notes.
 
 ## What Is Real
 
-- Runnable Angular app scaffold.
-- Frontend package boundaries for services, UI assets, UI library, UI tokens and utils.
+- Runnable Angular app.
+- Frontend library boundaries for services, UI assets, UI library, UI tokens and utils.
 - Dashboard workstream data loaded from the .NET API through `libs/services`.
 - Feature routes for payments, warehouse, HR uplift, insights and automation.
 - Readiness route for derived program score, signals and recommended next actions.
@@ -138,4 +140,4 @@ GET /api/automation/candidates
 - AI/model calls.
 - Enterprise identity, PCI controls and cloud deployment.
 
-Those boundaries are reserved for later chunks and should be named honestly when implemented.
+Those boundaries should be named honestly before production expansion.
