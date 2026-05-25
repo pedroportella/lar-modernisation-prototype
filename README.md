@@ -4,6 +4,12 @@ Working prototype for an interview: an Angular transformation console backed by 
 
 The client framing is intentionally neutral. The prototype demonstrates delivery judgement for a large Australian retailer modernisation program without naming or copying a real client.
 
+## Screenshots
+
+| Dashboard and runtime posture                                         | Payments workflow review                                                |
+| --------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| ![Transformation Delivery Console dashboard](docs/screenshots/lar-dashboard-runtime.png) | ![Payment migration workflow review](docs/screenshots/lar-payments-workflow.png) |
+
 ## Repository Shape
 
 ```text
