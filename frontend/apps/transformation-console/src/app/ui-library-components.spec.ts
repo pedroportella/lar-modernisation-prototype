@@ -2,7 +2,9 @@ import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import {
   PageAlertComponent,
+  PageFrameComponent,
   PageHeaderComponent,
+  SectionHeaderComponent,
   StatusTagComponent,
   SummaryMetricComponent,
 } from '@lar/ui-library';
@@ -16,6 +18,25 @@ import {
   `,
 })
 class PageAlertHostComponent {}
+
+@Component({
+  imports: [PageFrameComponent],
+  template: `
+    <lar-page-frame
+      eyebrow="Operations"
+      title="Runtime Status"
+      headingId="operations-title"
+      summary="Runtime metadata from the API."
+      metaLabel="Runtime source"
+      metaValue="Configured API boundary"
+      [hasActions]="true"
+    >
+      <button page-actions>Refresh</button>
+      <section>Route body</section>
+    </lar-page-frame>
+  `,
+})
+class PageFrameHostComponent {}
 
 describe('ui-library components', () => {
   describe(StatusTagComponent.name, () => {
@@ -110,6 +131,57 @@ describe('ui-library components', () => {
       const metric = fixture.nativeElement.querySelector('.metric') as HTMLElement;
       expect(metric.textContent).toContain('At-risk workstreams');
       expect(metric.textContent).toContain('2');
+    });
+  });
+
+  describe(PageFrameComponent.name, () => {
+    let fixture: ComponentFixture<PageFrameHostComponent>;
+
+    beforeEach(async () => {
+      await TestBed.configureTestingModule({
+        imports: [PageFrameHostComponent],
+      }).compileComponents();
+
+      fixture = TestBed.createComponent(PageFrameHostComponent);
+    });
+
+    it('renders page identity, metadata, actions and projected body content', () => {
+      fixture.detectChanges();
+
+      const heading = fixture.nativeElement.querySelector('h1') as HTMLHeadingElement;
+      expect(heading.id).toBe('operations-title');
+      expect(heading.textContent?.trim()).toBe('Runtime Status');
+      expect(fixture.nativeElement.textContent).toContain('Runtime source');
+      expect(fixture.nativeElement.textContent).toContain('Configured API boundary');
+      expect(fixture.nativeElement.textContent).toContain('Refresh');
+      expect(fixture.nativeElement.textContent).toContain('Route body');
+    });
+  });
+
+  describe(SectionHeaderComponent.name, () => {
+    let fixture: ComponentFixture<SectionHeaderComponent>;
+
+    beforeEach(async () => {
+      await TestBed.configureTestingModule({
+        imports: [SectionHeaderComponent],
+      }).compileComponents();
+
+      fixture = TestBed.createComponent(SectionHeaderComponent);
+    });
+
+    it('renders section heading context', () => {
+      fixture.componentRef.setInput('eyebrow', 'Actions');
+      fixture.componentRef.setInput('title', 'Recommended Next Actions');
+      fixture.componentRef.setInput('headingId', 'recommended-actions');
+      fixture.componentRef.setInput('summary', 'Prioritised moves from current posture.');
+
+      fixture.detectChanges();
+
+      const heading = fixture.nativeElement.querySelector('h2') as HTMLHeadingElement;
+      expect(heading.id).toBe('recommended-actions');
+      expect(heading.textContent?.trim()).toBe('Recommended Next Actions');
+      expect(fixture.nativeElement.textContent).toContain('Actions');
+      expect(fixture.nativeElement.textContent).toContain('Prioritised moves from current posture.');
     });
   });
 });

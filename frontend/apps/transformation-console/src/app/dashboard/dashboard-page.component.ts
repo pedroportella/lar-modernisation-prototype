@@ -6,7 +6,7 @@ import {
   EmptyStateComponent,
   LoadingStateComponent,
   PageAlertComponent,
-  PageHeaderComponent,
+  PageFrameComponent,
   SummaryMetricComponent,
   WorkstreamCardComponent,
 } from '@lar/ui-library';
@@ -24,7 +24,7 @@ type DashboardState =
     EmptyStateComponent,
     LoadingStateComponent,
     PageAlertComponent,
-    PageHeaderComponent,
+    PageFrameComponent,
     SummaryMetricComponent,
     WorkstreamCardComponent,
   ],

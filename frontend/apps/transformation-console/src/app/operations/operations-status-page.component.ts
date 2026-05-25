@@ -2,7 +2,12 @@ import { AsyncPipe, DatePipe, TitleCasePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { catchError, map, of, startWith } from 'rxjs';
 import { OperationalDatasetCounts, OperationalStatus, TransformationApiService } from '@lar/services';
-import { StatusTagComponent } from '@lar/ui-library';
+import {
+  LoadingStateComponent,
+  PageAlertComponent,
+  PageFrameComponent,
+  StatusTagComponent,
+} from '@lar/ui-library';
 
 type OperationsState =
   | { status: 'loading'; statusReport: null; countItems: CountItem[] }
@@ -16,7 +21,15 @@ interface CountItem {
 
 @Component({
   selector: 'app-operations-status-page',
-  imports: [AsyncPipe, DatePipe, StatusTagComponent, TitleCasePipe],
+  imports: [
+    AsyncPipe,
+    DatePipe,
+    LoadingStateComponent,
+    PageAlertComponent,
+    PageFrameComponent,
+    StatusTagComponent,
+    TitleCasePipe,
+  ],
   templateUrl: './operations-status-page.component.html',
   styleUrl: './operations-status-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

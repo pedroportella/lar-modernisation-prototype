@@ -1,15 +1,19 @@
-<section class="readiness" aria-labelledby="readiness-title">
-  <div class="heading">
-    <p class="eyebrow">Program readiness</p>
-    <h1 id="readiness-title">Delivery Readiness</h1>
-    <p>Derived delivery posture from workstream health and current initiative next actions.</p>
-  </div>
+<lar-page-frame
+  eyebrow="Program readiness"
+  title="Delivery Readiness"
+  headingId="readiness-title"
+  summary="Derived delivery posture from workstream health and current initiative next actions."
+  metaLabel="Decision posture"
+  metaValue="Read-only review"
+>
 
   @if (state$ | async; as state) {
     @if (state.status === 'loading') {
-      <p class="notice">Loading readiness posture...</p>
+      <lar-loading-state message="Loading readiness posture..."></lar-loading-state>
     } @else if (state.status === 'error') {
-      <p class="notice error">Unable to reach the backend API.</p>
+      <lar-page-alert tone="error" title="Unable to reach the backend API">
+        Check the runtime API configuration or enable mock API mode for frontend-only delivery.
+      </lar-page-alert>
     } @else {
       <section class="hero-metrics" aria-label="Readiness summary">
         <div class="score">
@@ -39,7 +43,11 @@
       </section>
 
       <section class="actions" aria-label="Recommended next actions">
-        <h2>Recommended Next Actions</h2>
+        <lar-section-header
+          eyebrow="Actions"
+          title="Recommended Next Actions"
+          summary="Prioritised next moves generated from current readiness posture."
+        ></lar-section-header>
         @for (action of state.readiness.recommendedActions; track action.workstreamId + action.initiative) {
           <article>
             <div>
@@ -54,4 +62,4 @@
       </section>
     }
   }
-</section>
+</lar-page-frame>

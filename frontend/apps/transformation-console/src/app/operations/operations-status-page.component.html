@@ -1,15 +1,19 @@
-<section class="operations" aria-labelledby="operations-title">
-  <div class="heading">
-    <p class="eyebrow">Operations</p>
-    <h1 id="operations-title">Runtime Status</h1>
-    <p>Readiness, data posture and runtime metadata from the .NET API.</p>
-  </div>
+<lar-page-frame
+  eyebrow="Operations"
+  title="Runtime Status"
+  headingId="operations-title"
+  summary="Readiness, data posture and runtime metadata from the .NET API."
+  metaLabel="Runtime source"
+  metaValue="Configured API boundary"
+>
 
   @if (state$ | async; as state) {
     @if (state.status === 'loading') {
-      <p class="notice">Loading operations status...</p>
+      <lar-loading-state message="Loading operations status..."></lar-loading-state>
     } @else if (state.status === 'error') {
-      <p class="notice error">Unable to reach the backend API.</p>
+      <lar-page-alert tone="error" title="Unable to reach the backend API">
+        Check the runtime API configuration or enable mock API mode for frontend-only delivery.
+      </lar-page-alert>
     } @else {
       <section class="status-grid" aria-label="Runtime summary">
         <div>
@@ -42,4 +46,4 @@
       </section>
     }
   }
-</section>
+</lar-page-frame>

@@ -95,7 +95,14 @@ import {
         grid-template-columns: 44px minmax(0, 1fr);
         gap: var(--lar-space-3);
         align-items: center;
-        color: inherit;
+        color: #ffffff;
+        text-decoration: none;
+      }
+
+      .brand:visited,
+      .brand:hover,
+      .brand:focus-visible {
+        color: #ffffff;
         text-decoration: none;
       }
 
@@ -121,6 +128,16 @@ import {
 
       .brand small {
         margin-top: var(--lar-space-1);
+        color: var(--lar-shell-muted);
+      }
+
+      .brand:hover strong,
+      .brand:focus-visible strong {
+        color: #ffffff;
+      }
+
+      .brand:hover small,
+      .brand:focus-visible small {
         color: var(--lar-shell-muted);
       }
 

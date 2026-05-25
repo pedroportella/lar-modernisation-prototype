@@ -1,9 +1,10 @@
-<section class="dashboard" aria-labelledby="page-title">
-  <lar-page-header
-    eyebrow="Large Australian Retailer"
-    title="Transformation Delivery Console"
-    summary="Workstream health is loaded through the frontend services package, with local mock data available for frontend-only delivery."
-  ></lar-page-header>
+<lar-page-frame
+  eyebrow="Large Australian Retailer"
+  title="Transformation Delivery Console"
+  summary="Workstream health is loaded through the frontend services package, with local mock data available for frontend-only delivery."
+  metaLabel="Runtime posture"
+  metaValue="Frontend mock capable"
+>
 
   @if (state$ | async; as state) {
     <section class="metrics" aria-label="Program summary">
@@ -31,4 +32,4 @@
       </section>
     }
   }
-</section>
+</lar-page-frame>
