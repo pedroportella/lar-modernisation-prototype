@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, input } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import {
   LAR_MARK_INITIALS,
@@ -43,7 +43,7 @@ import {
       <div class="workspace">
         <header class="workspace-bar">
           <span>Modernisation workspace</span>
-          <strong>Frontend mock mode</strong>
+          <strong>{{ runtimeLabel() }}</strong>
         </header>
 
         <main id="main-content" tabindex="-1">
@@ -226,6 +226,7 @@ export class AppShellComponent {
   protected readonly productName = LAR_PRODUCT_NAME;
   protected readonly clientLabel = LAR_NEUTRAL_CLIENT_LABEL;
   protected readonly markInitials = LAR_MARK_INITIALS;
+  readonly runtimeLabel = input('Runtime config');
   protected readonly navGroups = [
     {
       id: 'overview-navigation',

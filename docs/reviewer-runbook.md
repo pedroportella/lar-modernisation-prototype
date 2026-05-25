@@ -80,7 +80,7 @@ With the Docker stack running, verify:
 - `GET http://localhost:5029/api/operations/status` returns SQLite status and seeded data counts.
 - `GET http://localhost:5029/api/program/readiness` returns delivery posture, score and recommended actions.
 - `GET http://localhost:5029/api/workstreams` returns seeded workstreams.
-- `GET http://localhost:4200/assets/runtime-config.js` points at `http://localhost:5029`.
+- `GET http://localhost:4200/assets/runtime-config.js` points at `http://localhost:5029`, sets `mockApi: false` and labels the shell `Docker API mode`.
 - `http://localhost:4200/automation` renders `Opportunity Queue` with one or more table rows.
 - `http://localhost:4200/readiness` renders `Delivery Readiness`.
 - `http://localhost:4200/operations` renders `Runtime Status`.
@@ -102,5 +102,6 @@ Use this path when walking a reviewer through the prototype:
 - External integrations are simulated through seeded SQLite data.
 - Docker persists SQLite in the `backend-data` named volume.
 - Runtime frontend API configuration is intentionally outside the compiled Angular bundle so Docker/local API targets can be changed without rebuilding.
+- The Docker frontend container writes runtime config from `LAR_FRONTEND_API_BASE_URL`, `LAR_FRONTEND_MOCK_API` and `LAR_FRONTEND_ENVIRONMENT_LABEL` when nginx starts.
 - Architecture and decision notes live in `docs/architecture.md` and `docs/decisions.md`.
 - CI and deployment packaging notes live in `docs/ci-deployment-notes.md`.

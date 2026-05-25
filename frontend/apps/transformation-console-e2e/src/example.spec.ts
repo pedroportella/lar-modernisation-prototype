@@ -67,7 +67,7 @@ test.describe('feature slices', () => {
     await expect(page.getByRole('heading', { name: 'Migration Readiness' })).toBeVisible();
     await expect(page.locator('tbody tr')).toHaveCount(mockPaymentReadiness.length);
 
-    await page.getByLabel('Status').selectOption('AtRisk');
+    await page.getByLabel('Status', { exact: true }).selectOption('AtRisk');
     await expect(page.locator('tbody tr')).toHaveCount(1);
     await expect(page.getByRole('button', { name: 'Token migration' })).toBeVisible();
     await expect(page.getByLabel('Selected record detail')).toContainText('Provider cutover sequencing');

@@ -7,6 +7,7 @@ The Angular app can run without Docker or the .NET backend. Local runtime config
 ```js
 window.larRuntimeConfig = {
   apiBaseUrl: 'mock',
+  environmentLabel: 'Frontend mock mode',
   mockApi: true,
 };
 ```
@@ -27,12 +28,21 @@ pnpm test:e2e
 
 Mock data lives in `libs/services/src/lib/mock-api.fixtures.ts`. The Angular app uses `larMockApiInterceptor` when `mockApi` is true, and Playwright imports the same fixture module through `@lar/mock-api-fixtures` so local UI and tests stay aligned.
 
-For Docker or full-stack review, keep `frontend/docker/runtime-config.js` pointed at the real API.
+For Docker or full-stack review, the nginx container writes `/assets/runtime-config.js` on startup from environment variables. The browser-facing API URL defaults to `http://localhost:5029`:
+
+```sh
+LAR_FRONTEND_API_BASE_URL=http://localhost:5029
+LAR_FRONTEND_ENVIRONMENT_LABEL="Docker API mode"
+LAR_FRONTEND_MOCK_API=false
+```
+
+`frontend/docker/runtime-config.js` remains a checked-in reference file, but Docker Compose no longer bind-mounts it over the built asset.
 
 To run the frontend against a local .NET API instead, set this in the repository root `.env.local`:
 
 ```sh
 LAR_FRONTEND_API_BASE_URL=http://localhost:5029
+LAR_FRONTEND_ENVIRONMENT_LABEL="Local API mode"
 LAR_FRONTEND_MOCK_API=false
 ```
 

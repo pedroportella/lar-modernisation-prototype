@@ -1,5 +1,7 @@
 import { HttpInterceptorFn, HttpResponse } from '@angular/common/http';
+import { inject } from '@angular/core';
 import { of } from 'rxjs';
+import { LAR_RUNTIME_CONFIG } from './api-config';
 import {
   mockAutomationCandidates,
   mockHrPlatformTasks,
@@ -24,7 +26,7 @@ const mockRoutes: Record<string, unknown> = {
 };
 
 export const larMockApiInterceptor: HttpInterceptorFn = (request, next) => {
-  if (!window.larRuntimeConfig?.mockApi) {
+  if (!inject(LAR_RUNTIME_CONFIG).mockApi) {
     return next(request);
   }
 

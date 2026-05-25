@@ -96,6 +96,14 @@ docker compose build
 docker compose up
 ```
 
+The frontend container writes `/assets/runtime-config.js` at startup. Override these values when needed:
+
+```bash
+LAR_FRONTEND_API_BASE_URL=http://localhost:5029
+LAR_FRONTEND_ENVIRONMENT_LABEL="Docker API mode"
+LAR_FRONTEND_MOCK_API=false
+```
+
 See [docs/reviewer-runbook.md](docs/reviewer-runbook.md) for the reviewer smoke checklist and handover notes.
 See [docs/architecture.md](docs/architecture.md) for the application shape and runtime flow.
 See [docs/decisions.md](docs/decisions.md) for the key technical decisions behind the prototype.

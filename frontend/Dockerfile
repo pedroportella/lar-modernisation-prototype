@@ -11,6 +11,8 @@ RUN pnpm exec nx build transformation-console --configuration=production
 
 FROM nginx:1.27-alpine AS runtime
 COPY frontend/docker/nginx.conf /etc/nginx/conf.d/default.conf
+COPY frontend/docker/40-runtime-config.sh /docker-entrypoint.d/40-runtime-config.sh
 COPY --from=build /workspace/frontend/dist/apps/transformation-console/browser /usr/share/nginx/html
+RUN chmod +x /docker-entrypoint.d/40-runtime-config.sh
 
 EXPOSE 80

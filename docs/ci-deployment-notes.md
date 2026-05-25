@@ -18,7 +18,11 @@ The local deployment package is the Docker Compose stack:
 - `frontend`: nginx image serving the Angular production build on container port `80` and host port `4200`.
 - `backend-data`: named volume for SQLite state at `/data/modernisation.db`.
 
-Frontend API configuration is loaded from `/assets/runtime-config.js`, so the browser-facing API URL can change without rebuilding Angular.
+Frontend API configuration is loaded from `/assets/runtime-config.js`, so the browser-facing API URL can change without rebuilding Angular. The frontend image writes that file at container startup from:
+
+- `LAR_FRONTEND_API_BASE_URL`, defaulting to `http://localhost:5029` for local Docker review;
+- `LAR_FRONTEND_MOCK_API`, defaulting to `false`;
+- `LAR_FRONTEND_ENVIRONMENT_LABEL`, defaulting to `Docker API mode`.
 
 ## Promotion Path
 

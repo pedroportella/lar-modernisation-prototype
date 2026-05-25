@@ -18,9 +18,12 @@ const env = {
 
 const mockApi = parseBoolean(env['LAR_FRONTEND_MOCK_API'], true);
 const apiBaseUrl = env['LAR_FRONTEND_API_BASE_URL'] ?? (mockApi ? 'mock' : 'http://localhost:5029');
+const environmentLabel =
+  env['LAR_FRONTEND_ENVIRONMENT_LABEL'] ?? (mockApi ? 'Frontend mock mode' : 'Backend API mode');
 
 const contents = `window.larRuntimeConfig = {
   apiBaseUrl: '${escapeJsString(apiBaseUrl)}',
+  environmentLabel: '${escapeJsString(environmentLabel)}',
   mockApi: ${mockApi ? 'true' : 'false'},
 };
 `;
@@ -28,7 +31,9 @@ const contents = `window.larRuntimeConfig = {
 await writeFile(runtimeConfigPath, contents, 'utf8');
 
 console.log(
-  `Wrote ${relativePath(runtimeConfigPath)} with apiBaseUrl=${apiBaseUrl} mockApi=${mockApi}`,
+  `Wrote ${relativePath(
+    runtimeConfigPath,
+  )} with apiBaseUrl=${apiBaseUrl} mockApi=${mockApi} environmentLabel=${environmentLabel}`,
 );
 
 async function readEnvFile(path) {

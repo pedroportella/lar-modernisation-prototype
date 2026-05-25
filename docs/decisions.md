@@ -10,7 +10,7 @@ The frontend uses Nx-style `apps` and `libs` folders. Shared Angular code lives 
 
 ## Runtime API Configuration
 
-The Angular build does not bake in a fixed API URL. Runtime config is served from `/assets/runtime-config.js`, so Docker and local development can point at different backend hosts without rebuilding the frontend image.
+The Angular build does not bake in a fixed API URL. Runtime config is served from `/assets/runtime-config.js`, so Docker and local development can point at different backend hosts without rebuilding the frontend image. The same config also carries a short environment label for the shell, making mock mode and API-backed mode visible to reviewers.
 
 ## Layered .NET API
 

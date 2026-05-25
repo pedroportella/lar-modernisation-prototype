@@ -17,10 +17,12 @@ services:
       dockerfile: frontend/Dockerfile
     depends_on:
       - backend
+    environment:
+      LAR_FRONTEND_API_BASE_URL: ${LAR_FRONTEND_API_BASE_URL:-http://localhost:5029}
+      LAR_FRONTEND_ENVIRONMENT_LABEL: ${LAR_FRONTEND_ENVIRONMENT_LABEL:-Docker API mode}
+      LAR_FRONTEND_MOCK_API: ${LAR_FRONTEND_MOCK_API:-false}
     ports:
       - "${LAR_FRONTEND_PORT:-4200}:80"
-    volumes:
-      - ./frontend/docker/runtime-config.js:/usr/share/nginx/html/assets/runtime-config.js:ro
 
 volumes:
   backend-data:

@@ -1,5 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterModule } from '@angular/router';
+import { LAR_RUNTIME_CONFIG } from '@lar/services';
 import { AppShellComponent } from '@lar/ui-library';
 
 @Component({
@@ -8,4 +9,6 @@ import { AppShellComponent } from '@lar/ui-library';
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })
-export class App {}
+export class App {
+  protected readonly runtimeConfig = inject(LAR_RUNTIME_CONFIG);
+}
