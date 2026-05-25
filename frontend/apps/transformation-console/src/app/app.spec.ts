@@ -29,6 +29,7 @@ describe('App', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.querySelector('lar-app-shell')).not.toBeNull();
     expect(compiled.textContent).toContain('Frontend mock mode');
-    expect(compiled.textContent).toContain('DeliveryLead');
+    expect(compiled.textContent).toContain('Delivery lead');
+    expect(compiled.textContent).not.toContain('DeliveryLead');
   });
 });

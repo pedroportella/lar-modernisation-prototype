@@ -39,7 +39,7 @@ import {
   SummaryMetricComponent,
   TextInputComponent,
 } from '@lar/ui-library';
-import { formatStatus } from '@lar/utils';
+import { formatRoles, formatStatus } from '@lar/utils';
 
 interface FeatureColumn {
   key: string;
@@ -227,6 +227,10 @@ export class FeatureSlicePageComponent {
   protected readonly canWriteWorkflowReviews =
     this.runtimeConfig.role === 'DeliveryLead' ||
     this.runtimeConfig.role === 'Admin';
+  protected readonly workflowWriteRoleLabel = formatRoles([
+    'DeliveryLead',
+    'Admin',
+  ]);
 
   protected readonly reviewForm = this.formBuilder.nonNullable.group({
     status: ['Monitoring', Validators.required],

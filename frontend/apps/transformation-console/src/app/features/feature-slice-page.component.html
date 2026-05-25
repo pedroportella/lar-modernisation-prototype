@@ -36,7 +36,10 @@
         cardClass="filters-panel"
         aria-label="Table filters"
       >
-        <div class="filters">
+        <div
+          class="filters"
+          [class.filters--without-status]="!state.config.statusKey"
+        >
           <lar-text-input
             [id]="'feature-search'"
             label="Search"
@@ -311,7 +314,8 @@
                 </form>
               } @else {
                 <lar-page-alert tone="info" title="Read-only role">
-                  Workflow review writes require DeliveryLead or Admin access.
+                  Workflow review writes require
+                  {{ workflowWriteRoleLabel }} access.
                 </lar-page-alert>
               }
             </aside>

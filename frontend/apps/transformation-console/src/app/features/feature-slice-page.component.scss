@@ -8,9 +8,15 @@
   display: grid;
   grid-template-columns:
     minmax(220px, 1fr) minmax(160px, 220px) minmax(180px, 260px)
-    minmax(88px, 110px) auto;
+    minmax(88px, 110px) minmax(120px, auto);
   gap: var(--lar-space-3);
   align-items: end;
+}
+
+.filters--without-status {
+  grid-template-columns:
+    minmax(220px, 1fr) minmax(180px, 260px) minmax(88px, 160px)
+    minmax(120px, auto);
 }
 
 .data-layout {

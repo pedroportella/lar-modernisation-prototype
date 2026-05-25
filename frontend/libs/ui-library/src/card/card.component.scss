@@ -1,5 +1,6 @@
 :host {
   display: block;
+  height: 100%;
   min-width: 0;
 }
 
@@ -25,13 +26,15 @@
 }
 
 .lar-workstream-card .health-card__body {
+  display: grid;
+  grid-template-rows: auto minmax(2.8rem, auto) 1fr;
   height: 100%;
 }
 
 .lar-workstream-card .health-card__title {
   font-size: 1.05rem;
   line-height: 1.35;
-  margin-top: 0;
+  margin-top: 1rem;
 }
 
 .lar-workstream-card .health-card__text {
