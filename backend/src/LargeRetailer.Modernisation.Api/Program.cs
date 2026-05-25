@@ -166,33 +166,83 @@ app.MapGet("/api/workstreams/{id}", async (
     .WithName("GetWorkstreamById");
 
 app.MapGet("/api/payments/migration-readiness", async (
+        string? search,
+        string? status,
+        int? page,
+        int? pageSize,
+        string? sort,
+        HttpContext httpContext,
         IFeatureSliceQueryService featureSliceQueryService,
         CancellationToken cancellationToken) =>
-    Results.Ok(await featureSliceQueryService.ListPaymentReadinessAsync(cancellationToken)))
+    FeatureQueryResults.From(
+        await featureSliceQueryService.ListPaymentReadinessAsync(
+            FeatureQueryRequest.From(search, status, page, pageSize, sort),
+            cancellationToken),
+        httpContext))
     .WithName("GetPaymentMigrationReadiness");
 
 app.MapGet("/api/warehouse/optimisation", async (
+        string? search,
+        string? status,
+        int? page,
+        int? pageSize,
+        string? sort,
+        HttpContext httpContext,
         IFeatureSliceQueryService featureSliceQueryService,
         CancellationToken cancellationToken) =>
-    Results.Ok(await featureSliceQueryService.ListWarehouseSignalsAsync(cancellationToken)))
+    FeatureQueryResults.From(
+        await featureSliceQueryService.ListWarehouseSignalsAsync(
+            FeatureQueryRequest.From(search, status, page, pageSize, sort),
+            cancellationToken),
+        httpContext))
     .WithName("GetWarehouseOptimisation");
 
 app.MapGet("/api/hr/platform-uplift", async (
+        string? search,
+        string? status,
+        int? page,
+        int? pageSize,
+        string? sort,
+        HttpContext httpContext,
         IFeatureSliceQueryService featureSliceQueryService,
         CancellationToken cancellationToken) =>
-    Results.Ok(await featureSliceQueryService.ListHrPlatformTasksAsync(cancellationToken)))
+    FeatureQueryResults.From(
+        await featureSliceQueryService.ListHrPlatformTasksAsync(
+            FeatureQueryRequest.From(search, status, page, pageSize, sort),
+            cancellationToken),
+        httpContext))
     .WithName("GetHrPlatformUplift");
 
 app.MapGet("/api/insights/wayfinding", async (
+        string? search,
+        string? status,
+        int? page,
+        int? pageSize,
+        string? sort,
+        HttpContext httpContext,
         IFeatureSliceQueryService featureSliceQueryService,
         CancellationToken cancellationToken) =>
-    Results.Ok(await featureSliceQueryService.ListInsightMetricsAsync(cancellationToken)))
+    FeatureQueryResults.From(
+        await featureSliceQueryService.ListInsightMetricsAsync(
+            FeatureQueryRequest.From(search, status, page, pageSize, sort),
+            cancellationToken),
+        httpContext))
     .WithName("GetWayfindingInsights");
 
 app.MapGet("/api/automation/candidates", async (
+        string? search,
+        string? status,
+        int? page,
+        int? pageSize,
+        string? sort,
+        HttpContext httpContext,
         IFeatureSliceQueryService featureSliceQueryService,
         CancellationToken cancellationToken) =>
-    Results.Ok(await featureSliceQueryService.ListAutomationCandidatesAsync(cancellationToken)))
+    FeatureQueryResults.From(
+        await featureSliceQueryService.ListAutomationCandidatesAsync(
+            FeatureQueryRequest.From(search, status, page, pageSize, sort),
+            cancellationToken),
+        httpContext))
     .WithName("GetAutomationCandidates");
 
 app.MapGet("/api/workflow-reviews/{slice}/{recordId:int}", async (
@@ -234,6 +284,25 @@ app.MapPost("/api/workflow-reviews/{slice}/{recordId:int}", async (
 app.Run();
 
 public sealed record HealthResponse(string Status, string Service);
+
+public static class FeatureQueryRequest
+{
+    public static FeatureSliceQuery From(string? search, string? status, int? page, int? pageSize, string? sort) =>
+        new(
+            string.IsNullOrWhiteSpace(search) ? null : search,
+            string.IsNullOrWhiteSpace(status) || string.Equals(status, "all", StringComparison.OrdinalIgnoreCase) ? null : status,
+            page ?? 1,
+            pageSize ?? 25,
+            string.IsNullOrWhiteSpace(sort) ? null : sort);
+}
+
+public static class FeatureQueryResults
+{
+    public static IResult From<T>(FeatureSliceQueryResult<T> result, HttpContext httpContext) =>
+        result.IsValid
+            ? Results.Ok(result.Response)
+            : CorrelatedResults.ValidationProblem(httpContext, result.Errors);
+}
 
 public sealed record OperationalStatusResponse(
     string Service,

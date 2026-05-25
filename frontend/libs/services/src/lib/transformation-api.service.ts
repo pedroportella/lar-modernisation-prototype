@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import {
@@ -8,9 +8,11 @@ import {
 } from './api-config';
 import {
   AutomationCandidate,
+  FeatureQuery,
   HrPlatformTask,
   InsightMetric,
   OperationalStatus,
+  PagedResponse,
   PaymentReadinessItem,
   ProgramReadiness,
   WarehouseSignal,
@@ -36,33 +38,48 @@ export class TransformationApiService {
     );
   }
 
-  listPaymentReadiness(): Observable<PaymentReadinessItem[]> {
-    return this.http.get<PaymentReadinessItem[]>(
+  listPaymentReadiness(
+    query: FeatureQuery = {},
+  ): Observable<PagedResponse<PaymentReadinessItem>> {
+    return this.http.get<PagedResponse<PaymentReadinessItem>>(
       `${this.apiBaseUrl}/api/payments/migration-readiness`,
+      { params: featureQueryParams(query) },
     );
   }
 
-  listWarehouseSignals(): Observable<WarehouseSignal[]> {
-    return this.http.get<WarehouseSignal[]>(
+  listWarehouseSignals(
+    query: FeatureQuery = {},
+  ): Observable<PagedResponse<WarehouseSignal>> {
+    return this.http.get<PagedResponse<WarehouseSignal>>(
       `${this.apiBaseUrl}/api/warehouse/optimisation`,
+      { params: featureQueryParams(query) },
     );
   }
 
-  listHrPlatformTasks(): Observable<HrPlatformTask[]> {
-    return this.http.get<HrPlatformTask[]>(
+  listHrPlatformTasks(
+    query: FeatureQuery = {},
+  ): Observable<PagedResponse<HrPlatformTask>> {
+    return this.http.get<PagedResponse<HrPlatformTask>>(
       `${this.apiBaseUrl}/api/hr/platform-uplift`,
+      { params: featureQueryParams(query) },
     );
   }
 
-  listInsightMetrics(): Observable<InsightMetric[]> {
-    return this.http.get<InsightMetric[]>(
+  listInsightMetrics(
+    query: FeatureQuery = {},
+  ): Observable<PagedResponse<InsightMetric>> {
+    return this.http.get<PagedResponse<InsightMetric>>(
       `${this.apiBaseUrl}/api/insights/wayfinding`,
+      { params: featureQueryParams(query) },
     );
   }
 
-  listAutomationCandidates(): Observable<AutomationCandidate[]> {
-    return this.http.get<AutomationCandidate[]>(
+  listAutomationCandidates(
+    query: FeatureQuery = {},
+  ): Observable<PagedResponse<AutomationCandidate>> {
+    return this.http.get<PagedResponse<AutomationCandidate>>(
       `${this.apiBaseUrl}/api/automation/candidates`,
+      { params: featureQueryParams(query) },
     );
   }
 
@@ -102,4 +119,22 @@ export class TransformationApiService {
       },
     );
   }
+}
+
+function featureQueryParams(query: FeatureQuery): HttpParams {
+  let params = new HttpParams();
+
+  for (const [key, value] of Object.entries(query)) {
+    if (
+      value === undefined ||
+      value === null ||
+      value === '' ||
+      value === 'all'
+    )
+      continue;
+
+    params = params.set(key, String(value));
+  }
+
+  return params;
 }

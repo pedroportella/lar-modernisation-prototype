@@ -150,10 +150,75 @@ public sealed class WorkstreamApiTests
 
         var client = application.CreateClient();
 
-        var records = await client.GetFromJsonAsync<object[]>(endpoint, CancellationToken.None);
+        var records = await client.GetFromJsonAsync<PagedResponse<JsonElement>>(endpoint, CancellationToken.None);
 
         Assert.NotNull(records);
-        Assert.Equal(expectedCount, records.Length);
+        Assert.Equal(expectedCount, records.TotalItems);
+        Assert.Equal(expectedCount, records.Items.Count);
+        Assert.Equal(1, records.Page);
+        Assert.Equal(25, records.PageSize);
+    }
+
+    [Fact]
+    public async Task Feature_slice_query_filters_and_pages_on_the_server()
+    {
+        var databasePath = Path.Combine(Path.GetTempPath(), $"lar-modernisation-{Guid.NewGuid():N}.db");
+
+        await using var application = new WebApplicationFactory<Program>()
+            .WithWebHostBuilder(builder =>
+            {
+                builder.ConfigureAppConfiguration((_, configurationBuilder) =>
+                {
+                    configurationBuilder.AddInMemoryCollection(new Dictionary<string, string?>
+                    {
+                        ["ConnectionStrings:ModernisationDb"] = $"Data Source={databasePath}"
+                    });
+                });
+            });
+
+        var client = application.CreateClient();
+
+        var filtered = await client.GetFromJsonAsync<PagedResponse<JsonElement>>(
+            "/api/payments/migration-readiness?search=refund&page=1&pageSize=1&sort=-area",
+            CancellationToken.None);
+
+        Assert.NotNull(filtered);
+        Assert.Single(filtered.Items);
+        Assert.Equal(1, filtered.Page);
+        Assert.Equal(1, filtered.PageSize);
+        Assert.Equal(1, filtered.TotalItems);
+        Assert.Equal("Refunds and disputes", filtered.Items.Single().GetProperty("area").GetString());
+    }
+
+    [Theory]
+    [InlineData("/api/payments/migration-readiness?pageSize=500", "pageSize")]
+    [InlineData("/api/payments/migration-readiness?page=0", "page")]
+    [InlineData("/api/payments/migration-readiness?sort=unknown", "sort")]
+    public async Task Feature_slice_query_rejects_invalid_contract_values(string endpoint, string expectedError)
+    {
+        var databasePath = Path.Combine(Path.GetTempPath(), $"lar-modernisation-{Guid.NewGuid():N}.db");
+
+        await using var application = new WebApplicationFactory<Program>()
+            .WithWebHostBuilder(builder =>
+            {
+                builder.ConfigureAppConfiguration((_, configurationBuilder) =>
+                {
+                    configurationBuilder.AddInMemoryCollection(new Dictionary<string, string?>
+                    {
+                        ["ConnectionStrings:ModernisationDb"] = $"Data Source={databasePath}"
+                    });
+                });
+            });
+
+        var client = application.CreateClient();
+
+        var response = await client.GetAsync(endpoint, CancellationToken.None);
+        var problem = await JsonDocument.ParseAsync(
+            await response.Content.ReadAsStreamAsync(CancellationToken.None),
+            cancellationToken: CancellationToken.None);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.True(problem.RootElement.GetProperty("errors").TryGetProperty(expectedError, out _));
     }
 
     [Fact]
@@ -371,6 +436,13 @@ public sealed class WorkstreamApiTests
         string Status,
         string Summary,
         int Priority);
+
+    private sealed record PagedResponse<T>(
+        IReadOnlyCollection<T> Items,
+        int Page,
+        int PageSize,
+        int TotalItems,
+        int TotalPages);
 
     private sealed record OperationalStatusResponse(
         string Service,

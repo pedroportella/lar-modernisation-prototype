@@ -10,11 +10,11 @@
     <section class="summary" aria-label="Feature summary">
       <lar-summary-metric
         label="Records"
-        [value]="state.records.length"
+        [value]="state.pageInfo.totalItems"
       ></lar-summary-metric>
       <lar-summary-metric
         label="Visible"
-        [value]="filteredRecords(state.records, state.config).length"
+        [value]="state.records.length"
       ></lar-summary-metric>
       <lar-summary-metric
         label="Needs attention"
@@ -51,20 +51,44 @@
               (change)="updateStatusFilter($event)"
             >
               <option value="all">All statuses</option>
-              @for (
-                status of statusOptions(state.records, state.config);
-                track status
-              ) {
+              @for (status of statusOptions(state.config); track status) {
                 <option [value]="status">{{ status }}</option>
               }
             </select>
           </div>
         }
 
+        <div class="field">
+          <label for="feature-sort">Sort</label>
+          <select
+            id="feature-sort"
+            [value]="sort()"
+            (change)="updateSort($event)"
+          >
+            <option value="">Source order</option>
+            @for (option of sortOptions(state.config); track option.value) {
+              <option [value]="option.value">{{ option.label }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="field compact">
+          <label for="feature-page-size">Rows</label>
+          <select
+            id="feature-page-size"
+            [value]="pageSize()"
+            (change)="updatePageSize($event)"
+          >
+            <option value="10">10</option>
+            <option value="25">25</option>
+            <option value="50">50</option>
+          </select>
+        </div>
+
         <button type="button" (click)="clearFilters()">Clear filters</button>
       </section>
 
-      @if (filteredRecords(state.records, state.config).length === 0) {
+      @if (state.records.length === 0) {
         <lar-page-alert tone="info" title="No matching records">
           Clear filters or adjust the search term to broaden the current
           operational view.
@@ -81,15 +105,10 @@
                 </tr>
               </thead>
               <tbody>
-                @for (
-                  record of filteredRecords(state.records, state.config);
-                  track record['id']
-                ) {
+                @for (record of state.records; track record['id']) {
                   <tr
                     [class.selected]="
-                      selectedRecord(
-                        filteredRecords(state.records, state.config)
-                      )?.['id'] === record['id']
+                      selectedRecord(state.records)?.['id'] === record['id']
                     "
                   >
                     @for (column of state.config.columns; track column.key) {
@@ -117,12 +136,34 @@
                 }
               </tbody>
             </table>
+            <div class="pagination" aria-label="Table pagination">
+              <button
+                type="button"
+                class="secondary"
+                [disabled]="state.pageInfo.page <= 1"
+                (click)="previousPage()"
+              >
+                Previous
+              </button>
+              <span>
+                Page {{ state.pageInfo.page }} of
+                {{ state.pageInfo.totalPages || 1 }}
+              </span>
+              <button
+                type="button"
+                class="secondary"
+                [disabled]="
+                  state.pageInfo.totalPages === 0 ||
+                  state.pageInfo.page >= state.pageInfo.totalPages
+                "
+                (click)="nextPage(state.pageInfo)"
+              >
+                Next
+              </button>
+            </div>
           </div>
 
-          @if (
-            selectedRecord(filteredRecords(state.records, state.config));
-            as record
-          ) {
+          @if (selectedRecord(state.records); as record) {
             <aside class="detail-panel" aria-label="Selected record detail">
               <span>{{ state.config.detailTitle }}</span>
               <h2>{{ recordLabel(record, state.config) }}</h2>

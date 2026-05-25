@@ -61,6 +61,22 @@ export interface AutomationCandidate {
   recommendedNextStep: string;
 }
 
+export interface FeatureQuery {
+  search?: string;
+  status?: string;
+  page?: number;
+  pageSize?: number;
+  sort?: string;
+}
+
+export interface PagedResponse<T> {
+  items: T[];
+  page: number;
+  pageSize: number;
+  totalItems: number;
+  totalPages: number;
+}
+
 export interface OperationalStatus {
   service: string;
   status: string;

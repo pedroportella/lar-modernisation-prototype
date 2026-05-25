@@ -1,5 +1,26 @@
 namespace LargeRetailer.Modernisation.Application.Features;
 
+public sealed record FeatureSliceQuery(
+    string? Search,
+    string? Status,
+    int Page = 1,
+    int PageSize = 25,
+    string? Sort = null);
+
+public sealed record FeatureSliceQueryResult<T>(
+    PagedResponse<T>? Response,
+    IReadOnlyDictionary<string, string[]> Errors)
+{
+    public bool IsValid => Errors.Count == 0 && Response is not null;
+}
+
+public sealed record PagedResponse<T>(
+    IReadOnlyCollection<T> Items,
+    int Page,
+    int PageSize,
+    int TotalItems,
+    int TotalPages);
+
 public sealed record PaymentReadinessItemDto(
     int Id,
     string Area,

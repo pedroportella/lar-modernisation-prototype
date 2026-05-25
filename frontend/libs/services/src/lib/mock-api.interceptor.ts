@@ -17,7 +17,12 @@ import {
   mockWorkstreamDetails,
   mockWorkstreams,
 } from './mock-api.fixtures';
-import { WorkflowReview, WorkflowReviewRequest } from './workstream.models';
+import {
+  FeatureQuery,
+  PagedResponse,
+  WorkflowReview,
+  WorkflowReviewRequest,
+} from './workstream.models';
 
 const mockRoutes: Record<string, unknown> = {
   '/api/workstreams': mockWorkstreams,
@@ -38,10 +43,11 @@ export const larMockApiInterceptor: HttpInterceptorFn = (request, next) => {
     return next(request);
   }
 
-  const path = apiPathFromUrl(request.url);
+  const apiRequest = apiRequestFromUrl(request.urlWithParams);
   const response = mockResponseForRequest(
     request.method,
-    path,
+    apiRequest.path,
+    apiRequest.searchParams,
     request.headers.get(LAR_DEMO_ROLE_HEADER),
     request.body,
   );
@@ -59,7 +65,8 @@ export const larMockApiInterceptor: HttpInterceptorFn = (request, next) => {
     status: response.status,
   });
 
-  return request.method === 'POST' && path.startsWith('/api/workflow-reviews/')
+  return request.method === 'POST' &&
+    apiRequest.path.startsWith('/api/workflow-reviews/')
     ? of(httpResponse).pipe(delay(150))
     : of(httpResponse);
 };
@@ -67,6 +74,7 @@ export const larMockApiInterceptor: HttpInterceptorFn = (request, next) => {
 function mockResponseForRequest(
   method: string,
   path: string,
+  searchParams: URLSearchParams,
   role: string | null,
   body: unknown,
 ): { body: unknown; status: number } | HttpErrorResponse | undefined {
@@ -101,7 +109,99 @@ function mockResponseForRequest(
 
   const routeBody = mockRoutes[path];
 
+  if (routeBody !== undefined && isFeatureRoute(path)) {
+    const response = mockPagedFeatureResponse(
+      routeBody as Record<string, string | number>[],
+      searchParams,
+    );
+
+    return response instanceof HttpErrorResponse
+      ? response
+      : { body: response, status: 200 };
+  }
+
   return routeBody === undefined ? undefined : { body: routeBody, status: 200 };
+}
+
+function isFeatureRoute(path: string): boolean {
+  return [
+    '/api/payments/migration-readiness',
+    '/api/warehouse/optimisation',
+    '/api/hr/platform-uplift',
+    '/api/insights/wayfinding',
+    '/api/automation/candidates',
+  ].includes(path);
+}
+
+function mockPagedFeatureResponse<T extends Record<string, string | number>>(
+  records: T[],
+  searchParams: URLSearchParams,
+): PagedResponse<T> | HttpErrorResponse {
+  const query: Required<FeatureQuery> = {
+    search: searchParams.get('search') ?? '',
+    status: searchParams.get('status') ?? '',
+    page: Number(searchParams.get('page') ?? 1),
+    pageSize: Number(searchParams.get('pageSize') ?? 25),
+    sort: searchParams.get('sort') ?? '',
+  };
+  const sort = query.sort.startsWith('-') ? query.sort.slice(1) : query.sort;
+
+  if (!Number.isInteger(query.page) || query.page < 1) {
+    return new HttpErrorResponse({ status: 400, statusText: 'Bad Request' });
+  }
+
+  if (
+    !Number.isInteger(query.pageSize) ||
+    query.pageSize < 1 ||
+    query.pageSize > 50
+  ) {
+    return new HttpErrorResponse({ status: 400, statusText: 'Bad Request' });
+  }
+
+  if (sort && !Object.keys(records[0] ?? {}).includes(sort)) {
+    return new HttpErrorResponse({ status: 400, statusText: 'Bad Request' });
+  }
+
+  let filtered = records;
+  const search = query.search.trim().toLowerCase();
+
+  if (search) {
+    filtered = filtered.filter((record) =>
+      Object.values(record).some((value) =>
+        String(value).toLowerCase().includes(search),
+      ),
+    );
+  }
+
+  if (query.status && query.status !== 'all') {
+    filtered = filtered.filter(
+      (record) => String(record['status']) === query.status,
+    );
+  }
+
+  if (sort) {
+    const direction = query.sort.startsWith('-') ? -1 : 1;
+
+    filtered = [...filtered].sort(
+      (left, right) =>
+        String(left[sort]).localeCompare(String(right[sort]), undefined, {
+          numeric: true,
+        }) * direction,
+    );
+  }
+
+  const totalItems = filtered.length;
+  const totalPages =
+    totalItems === 0 ? 0 : Math.ceil(totalItems / query.pageSize);
+  const startIndex = (query.page - 1) * query.pageSize;
+
+  return {
+    items: filtered.slice(startIndex, startIndex + query.pageSize),
+    page: query.page,
+    pageSize: query.pageSize,
+    totalItems,
+    totalPages,
+  };
 }
 
 function mockWorkflowReviewResponse(
@@ -160,14 +260,28 @@ function mockWorkflowReviewResponse(
   return { body: review, status: 201 };
 }
 
-function apiPathFromUrl(url: string): string {
+function apiRequestFromUrl(url: string): {
+  path: string;
+  searchParams: URLSearchParams;
+} {
+  const parsed = new URL(url, 'http://mock.local');
   const apiIndex = url.indexOf('/api/');
 
   if (apiIndex >= 0) {
-    return url.slice(apiIndex);
+    return {
+      path: url.slice(apiIndex).split('?')[0],
+      searchParams: parsed.searchParams,
+    };
   }
 
-  return url.startsWith('/api/') ? url : `/${url.replace(/^mock\/?/, '')}`;
+  const path = url.startsWith('/api/')
+    ? parsed.pathname
+    : `/${url.replace(/^mock\/?/, '').split('?')[0]}`;
+
+  return {
+    path,
+    searchParams: parsed.searchParams,
+  };
 }
 
 function cloneMock<T>(body: T): T {

@@ -44,6 +44,35 @@ describe('mock API mode', () => {
     ).resolves.toEqual(mockProgramReadiness);
   });
 
+  it('serves feature slices through the paged query contract', async () => {
+    const service = TestBed.inject(TransformationApiService);
+
+    await expect(
+      firstValueFrom(
+        service.listPaymentReadiness({
+          page: 1,
+          pageSize: 1,
+          search: 'settlement',
+          sort: '-area',
+        }),
+      ),
+    ).resolves.toMatchObject({
+      items: [{ area: 'Settlement reporting' }],
+      page: 1,
+      pageSize: 1,
+      totalItems: 1,
+      totalPages: 1,
+    });
+  });
+
+  it('rejects invalid mock feature query values', async () => {
+    const service = TestBed.inject(TransformationApiService);
+
+    await expect(
+      firstValueFrom(service.listPaymentReadiness({ pageSize: 500 })),
+    ).rejects.toMatchObject({ status: 400 });
+  });
+
   it('persists workflow reviews in mock mode', async () => {
     const service = TestBed.inject(TransformationApiService);
 

@@ -6,7 +6,9 @@
 
 .filters {
   display: grid;
-  grid-template-columns: minmax(220px, 1fr) minmax(180px, 240px) auto;
+  grid-template-columns:
+    minmax(220px, 1fr) minmax(160px, 220px) minmax(180px, 260px)
+    minmax(88px, 110px) auto;
   gap: var(--lar-space-3);
   align-items: end;
   padding: var(--lar-space-4);
@@ -18,6 +20,10 @@
 .field {
   display: grid;
   gap: var(--lar-space-1);
+}
+
+.field.compact {
+  max-width: 120px;
 }
 
 .field label {
@@ -206,6 +212,37 @@ tbody tr.selected td {
 .workflow-actions .secondary {
   border-color: var(--lar-border-strong);
   color: var(--lar-text);
+}
+
+.pagination {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--lar-space-3);
+  align-items: center;
+  justify-content: flex-end;
+  padding: var(--lar-space-3) var(--lar-space-4);
+  border-top: 1px solid var(--lar-border);
+}
+
+.pagination button {
+  min-height: 40px;
+  border: 1px solid var(--lar-border-strong);
+  border-radius: var(--lar-radius);
+  background: #ffffff;
+  color: var(--lar-text);
+  font-weight: 800;
+  padding: 0 var(--lar-space-3);
+}
+
+.pagination button:disabled {
+  color: var(--lar-text-muted);
+  cursor: not-allowed;
+}
+
+.pagination span {
+  color: var(--lar-text-muted);
+  font-size: 0.88rem;
+  font-weight: 800;
 }
 
 @media (max-width: 1100px) {

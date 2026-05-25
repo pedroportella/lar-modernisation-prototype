@@ -8,7 +8,9 @@ import {
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import {
+  BehaviorSubject,
   catchError,
+  combineLatest,
   EMPTY,
   map,
   Observable,
@@ -20,6 +22,7 @@ import {
 } from 'rxjs';
 import {
   LAR_RUNTIME_CONFIG,
+  PagedResponse,
   TransformationApiService,
   WorkflowReview,
 } from '@lar/services';
@@ -61,9 +64,24 @@ type FeatureRecord = Record<string, string | number>;
 type WorkflowSaveState = 'idle' | 'saving' | 'saved' | 'error';
 
 type FeatureState =
-  | { status: 'loading'; config: FeatureConfig; records: FeatureRecord[] }
-  | { status: 'ready'; config: FeatureConfig; records: FeatureRecord[] }
-  | { status: 'error'; config: FeatureConfig; records: FeatureRecord[] };
+  | {
+      status: 'loading';
+      config: FeatureConfig;
+      records: FeatureRecord[];
+      pageInfo: PagedResponse<FeatureRecord>;
+    }
+  | {
+      status: 'ready';
+      config: FeatureConfig;
+      records: FeatureRecord[];
+      pageInfo: PagedResponse<FeatureRecord>;
+    }
+  | {
+      status: 'error';
+      config: FeatureConfig;
+      records: FeatureRecord[];
+      pageInfo: PagedResponse<FeatureRecord>;
+    };
 
 const featureConfigs: Record<string, FeatureConfig> = {
   payments: {
@@ -184,6 +202,9 @@ export class FeatureSlicePageComponent {
 
   protected readonly searchTerm = signal('');
   protected readonly statusFilter = signal('all');
+  protected readonly page = signal(1);
+  protected readonly pageSize = signal(25);
+  protected readonly sort = signal('');
   protected readonly selectedRecordId = signal<string | number | null>(null);
   protected readonly workflowReviews = signal<Record<string, WorkflowReview>>(
     {},
@@ -203,29 +224,41 @@ export class FeatureSlicePageComponent {
 
   private activeWorkflowRecordKey = '';
   private readonly loadedWorkflowReviewKeys = new Set<string>();
+  private readonly queryRefresh = new BehaviorSubject<void>(undefined);
 
-  protected readonly state$: Observable<FeatureState> = this.route.data.pipe(
-    map(
-      (data) =>
-        featureConfigs[data['slice'] as string] ?? featureConfigs['payments'],
+  protected readonly state$: Observable<FeatureState> = combineLatest([
+    this.route.data.pipe(
+      map(
+        (data) =>
+          featureConfigs[data['slice'] as string] ?? featureConfigs['payments'],
+      ),
     ),
-    switchMap((config) =>
+    this.queryRefresh,
+  ]).pipe(
+    switchMap(([config]) =>
       this.loadRecords(config).pipe(
-        tap((records) => this.ensureSelectedRecord(records, config)),
+        tap((pageInfo) => this.ensureSelectedRecord(pageInfo.items, config)),
         map(
-          (records): FeatureState => ({
+          (pageInfo): FeatureState => ({
             status: 'ready',
             config,
-            records,
+            records: pageInfo.items,
+            pageInfo,
           }),
         ),
         startWith({
           status: 'loading',
           config,
           records: [],
+          pageInfo: emptyPage(this.page(), this.pageSize()),
         } satisfies FeatureState),
         catchError(() =>
-          of({ status: 'error', config, records: [] } satisfies FeatureState),
+          of({
+            status: 'error',
+            config,
+            records: [],
+            pageInfo: emptyPage(this.page(), this.pageSize()),
+          } satisfies FeatureState),
         ),
       ),
     ),
@@ -233,15 +266,46 @@ export class FeatureSlicePageComponent {
 
   protected updateSearch(event: Event): void {
     this.searchTerm.set((event.target as HTMLInputElement).value);
+    this.page.set(1);
+    this.refreshQuery();
   }
 
   protected updateStatusFilter(event: Event): void {
     this.statusFilter.set((event.target as HTMLSelectElement).value);
+    this.page.set(1);
+    this.refreshQuery();
+  }
+
+  protected updateSort(event: Event): void {
+    this.sort.set((event.target as HTMLSelectElement).value);
+    this.page.set(1);
+    this.refreshQuery();
+  }
+
+  protected updatePageSize(event: Event): void {
+    this.pageSize.set(Number((event.target as HTMLSelectElement).value));
+    this.page.set(1);
+    this.refreshQuery();
+  }
+
+  protected previousPage(): void {
+    this.page.update((page) => Math.max(1, page - 1));
+    this.refreshQuery();
+  }
+
+  protected nextPage(pageInfo: PagedResponse<FeatureRecord>): void {
+    if (this.page() >= pageInfo.totalPages) return;
+
+    this.page.update((page) => page + 1);
+    this.refreshQuery();
   }
 
   protected clearFilters(): void {
     this.searchTerm.set('');
     this.statusFilter.set('all');
+    this.sort.set('');
+    this.page.set(1);
+    this.refreshQuery();
   }
 
   protected selectRecord(record: FeatureRecord, config: FeatureConfig): void {
@@ -249,46 +313,19 @@ export class FeatureSlicePageComponent {
     this.syncReviewForm(record, config);
   }
 
-  protected filteredRecords(
-    records: FeatureRecord[],
-    config: FeatureConfig,
-  ): FeatureRecord[] {
-    const query = this.searchTerm().trim().toLowerCase();
-    const status = this.statusFilter();
-
-    return records.filter((record) => {
-      const matchesQuery =
-        !query ||
-        config.columns.some((column) =>
-          String(this.valueFor(record, column, config))
-            .toLowerCase()
-            .includes(query),
-        );
-      const matchesStatus =
-        status === 'all' ||
-        !config.statusKey ||
-        String(
-          this.valueFor(
-            record,
-            { key: config.statusKey, label: 'Status' },
-            config,
-          ),
-        ) === status;
-
-      return matchesQuery && matchesStatus;
-    });
+  protected statusOptions(config: FeatureConfig): string[] {
+    return config.statusKey
+      ? ['AtRisk', 'Blocked', 'Complete', 'Monitoring', 'OnTrack']
+      : [];
   }
 
-  protected statusOptions(
-    records: FeatureRecord[],
+  protected sortOptions(
     config: FeatureConfig,
-  ): string[] {
-    if (!config.statusKey) return [];
-    const statusKey = config.statusKey;
-
-    return Array.from(
-      new Set(records.map((record) => String(record[statusKey]))),
-    ).sort();
+  ): { value: string; label: string }[] {
+    return config.columns.flatMap((column) => [
+      { value: column.key, label: `${column.label} ascending` },
+      { value: `-${column.key}`, label: `${column.label} descending` },
+    ]);
   }
 
   protected attentionCount(
@@ -428,36 +465,44 @@ export class FeatureSlicePageComponent {
     records: FeatureRecord[],
     config: FeatureConfig,
   ): string[] {
-    const existing = config.statusKey
-      ? this.statusOptions(records, config)
-      : [];
+    const existing = config.statusKey ? this.statusOptions(config) : [];
     return Array.from(
       new Set([...existing, 'OnTrack', 'Monitoring', 'AtRisk', 'Blocked']),
     ).sort();
   }
 
-  private loadRecords(config: FeatureConfig): Observable<FeatureRecord[]> {
+  private loadRecords(
+    config: FeatureConfig,
+  ): Observable<PagedResponse<FeatureRecord>> {
+    const query = {
+      page: this.page(),
+      pageSize: this.pageSize(),
+      search: this.searchTerm(),
+      sort: this.sort(),
+      status: this.statusFilter(),
+    };
+
     switch (config.load) {
       case 'listPaymentReadiness':
         return this.transformationApi
-          .listPaymentReadiness()
-          .pipe(map(toFeatureRecords));
+          .listPaymentReadiness(query)
+          .pipe(map(toFeaturePage));
       case 'listWarehouseSignals':
         return this.transformationApi
-          .listWarehouseSignals()
-          .pipe(map(toFeatureRecords));
+          .listWarehouseSignals(query)
+          .pipe(map(toFeaturePage));
       case 'listHrPlatformTasks':
         return this.transformationApi
-          .listHrPlatformTasks()
-          .pipe(map(toFeatureRecords));
+          .listHrPlatformTasks(query)
+          .pipe(map(toFeaturePage));
       case 'listInsightMetrics':
         return this.transformationApi
-          .listInsightMetrics()
-          .pipe(map(toFeatureRecords));
+          .listInsightMetrics(query)
+          .pipe(map(toFeaturePage));
       case 'listAutomationCandidates':
         return this.transformationApi
-          .listAutomationCandidates()
-          .pipe(map(toFeatureRecords));
+          .listAutomationCandidates(query)
+          .pipe(map(toFeaturePage));
     }
   }
 
@@ -545,8 +590,30 @@ export class FeatureSlicePageComponent {
   private reviewKey(record: FeatureRecord, config: FeatureConfig): string {
     return `${config.sliceKey}:${record['id']}`;
   }
+
+  private refreshQuery(): void {
+    this.queryRefresh.next();
+  }
 }
 
-function toFeatureRecords<T extends object>(records: T[]): FeatureRecord[] {
-  return records.map((record) => record as unknown as FeatureRecord);
+function emptyPage(
+  page: number,
+  pageSize: number,
+): PagedResponse<FeatureRecord> {
+  return {
+    items: [],
+    page,
+    pageSize,
+    totalItems: 0,
+    totalPages: 0,
+  };
+}
+
+function toFeaturePage<T extends object>(
+  page: PagedResponse<T>,
+): PagedResponse<FeatureRecord> {
+  return {
+    ...page,
+    items: page.items.map((record) => record as unknown as FeatureRecord),
+  };
 }
