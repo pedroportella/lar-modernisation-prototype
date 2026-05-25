@@ -19,6 +19,8 @@ public sealed class ModernisationDbContext(DbContextOptions<ModernisationDbConte
 
     public DbSet<AutomationCandidate> AutomationCandidates => Set<AutomationCandidate>();
 
+    public DbSet<AutomationGovernanceReview> AutomationGovernanceReviews => Set<AutomationGovernanceReview>();
+
     public DbSet<WorkflowReview> WorkflowReviews => Set<WorkflowReview>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -86,6 +88,17 @@ public sealed class ModernisationDbContext(DbContextOptions<ModernisationDbConte
             entity.Property(candidate => candidate.WorkflowName).HasMaxLength(160).IsRequired();
             entity.Property(candidate => candidate.RiskClass).HasMaxLength(80).IsRequired();
             entity.Property(candidate => candidate.RecommendedNextStep).HasMaxLength(300).IsRequired();
+        });
+
+        modelBuilder.Entity<AutomationGovernanceReview>(entity =>
+        {
+            entity.Property(review => review.TriageStatus).HasMaxLength(40).IsRequired();
+            entity.Property(review => review.DataSensitivity).HasMaxLength(40).IsRequired();
+            entity.Property(review => review.ModelRisk).HasMaxLength(40).IsRequired();
+            entity.Property(review => review.ExpectedBenefit).HasMaxLength(400).IsRequired();
+            entity.Property(review => review.EvidenceSource).HasMaxLength(300).IsRequired();
+            entity.Property(review => review.ReviewedBy).HasMaxLength(100).IsRequired();
+            entity.HasIndex(review => new { review.CandidateId, review.Id });
         });
 
         modelBuilder.Entity<WorkflowReview>(entity =>

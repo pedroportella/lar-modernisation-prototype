@@ -8,6 +8,8 @@ import {
 } from './api-config';
 import {
   AutomationCandidate,
+  AutomationGovernanceReview,
+  AutomationGovernanceReviewRequest,
   FeatureQuery,
   HrPlatformTask,
   InsightMetric,
@@ -80,6 +82,29 @@ export class TransformationApiService {
     return this.http.get<PagedResponse<AutomationCandidate>>(
       `${this.apiBaseUrl}/api/automation/candidates`,
       { params: featureQueryParams(query) },
+    );
+  }
+
+  getAutomationGovernanceReview(
+    candidateId: string | number,
+  ): Observable<AutomationGovernanceReview> {
+    return this.http.get<AutomationGovernanceReview>(
+      `${this.apiBaseUrl}/api/automation/candidates/${candidateId}/governance-review`,
+    );
+  }
+
+  saveAutomationGovernanceReview(
+    candidateId: string | number,
+    request: AutomationGovernanceReviewRequest,
+  ): Observable<AutomationGovernanceReview> {
+    return this.http.post<AutomationGovernanceReview>(
+      `${this.apiBaseUrl}/api/automation/candidates/${candidateId}/governance-review`,
+      request,
+      {
+        headers: {
+          [LAR_DEMO_ROLE_HEADER]: this.runtimeConfig.role,
+        },
+      },
     );
   }
 

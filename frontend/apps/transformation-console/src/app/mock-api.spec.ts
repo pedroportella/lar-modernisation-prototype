@@ -102,6 +102,36 @@ describe('mock API mode', () => {
     });
   });
 
+  it('persists automation governance reviews in mock mode', async () => {
+    const service = TestBed.inject(TransformationApiService);
+
+    await expect(
+      firstValueFrom(
+        service.saveAutomationGovernanceReview(1, {
+          triageStatus: 'ApprovedForPrototype',
+          dataSensitivity: 'Internal',
+          humanApprovalRequired: false,
+          modelRisk: 'Medium',
+          expectedBenefit: 'Reduce manual exception triage effort',
+          evidenceSource: 'Discovery workshop notes',
+          reviewedBy: 'Automation lead',
+        }),
+      ),
+    ).resolves.toMatchObject({
+      candidateId: 1,
+      triageStatus: 'ApprovedForPrototype',
+      modelRisk: 'Medium',
+    });
+
+    await expect(
+      firstValueFrom(service.getAutomationGovernanceReview(1)),
+    ).resolves.toMatchObject({
+      candidateId: 1,
+      triageStatus: 'ApprovedForPrototype',
+      evidenceSource: 'Discovery workshop notes',
+    });
+  });
+
   it('normalises runtime config for mock mode', () => {
     expect(TestBed.inject(LAR_RUNTIME_CONFIG)).toEqual({
       apiBaseUrl: 'mock',

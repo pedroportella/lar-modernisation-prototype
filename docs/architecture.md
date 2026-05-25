@@ -31,6 +31,17 @@ Angular reads runtime API configuration from `/assets/runtime-config.js`, which 
 
 The .NET API creates and seeds the SQLite database on startup. That keeps the prototype self-contained while still exercising realistic persistence, query services and integration tests.
 
+## Azure Promotion View
+
+The local Docker shape maps cleanly to Azure without changing the application boundaries:
+
+- frontend static assets can move to Azure Static Web Apps, App Service or Front Door/CDN;
+- the .NET API container can move to Azure Container Apps or App Service for Containers;
+- SQLite would be replaced by Azure SQL for production relational storage;
+- Key Vault, Application Insights and GitHub Actions environments would provide secrets, telemetry and promotion gates.
+
+See [azure-deployment-blueprint.md](azure-deployment-blueprint.md) for the detailed Azure-oriented deployment sketch. It is a blueprint only; this repository does not provision Azure resources.
+
 ## Frontend Shape
 
 - `apps/transformation-console`: routed Angular application.
@@ -52,6 +63,8 @@ This follows the Angular/Nx convention of `apps` plus `libs`, instead of a Next.
 - `tests`: API, application and integration test projects.
 
 The API exposes health, operations status, program readiness, workstreams and five feature slices. Feature data is intentionally seeded but flows through the same boundaries a production implementation would extend.
+
+Automation governance reviews are append-only events tied to automation candidates. They capture triage status, data sensitivity, model risk, expected benefit, evidence/source and reviewer details before any model-provider integration is introduced.
 
 ## Verification
 

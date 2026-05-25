@@ -114,6 +114,7 @@ See [docs/reviewer-runbook.md](docs/reviewer-runbook.md) for the reviewer smoke 
 See [docs/architecture.md](docs/architecture.md) for the application shape and runtime flow.
 See [docs/decisions.md](docs/decisions.md) for the key technical decisions behind the prototype.
 See [docs/ci-deployment-notes.md](docs/ci-deployment-notes.md) for CI and deployment packaging notes.
+See [docs/azure-deployment-blueprint.md](docs/azure-deployment-blueprint.md) for the Azure promotion blueprint.
 
 ## What Is Real
 
@@ -126,6 +127,7 @@ See [docs/ci-deployment-notes.md](docs/ci-deployment-notes.md) for CI and deploy
 - Persisted workflow review writes protected by a demo role boundary.
 - Server-side feature query contracts with paging, filtering and sort validation.
 - Baseline security hardening: API rate limiting, explicit CORS config and nginx security headers.
+- Automation governance review events for AI/automation candidate triage.
 - Shared formatting and standards gates for frontend and backend.
 - Docker Compose stack for local full-stack review.
 - GitHub Actions workflow that validates frontend, backend and Docker packaging.
@@ -149,6 +151,8 @@ GET /api/warehouse/optimisation
 GET /api/hr/platform-uplift
 GET /api/insights/wayfinding
 GET /api/automation/candidates
+GET /api/automation/candidates/{candidateId}/governance-review
+POST /api/automation/candidates/{candidateId}/governance-review
 GET /api/workflow-reviews/{slice}/{recordId}
 POST /api/workflow-reviews/{slice}/{recordId}
 ```
@@ -158,6 +162,7 @@ POST /api/workflow-reviews/{slice}/{recordId}
 - Payment provider integration.
 - Warehouse, HRIS and analytics feeds.
 - AI/model calls.
+- Model-provider governance, prompt registry and evaluation harness.
 - Enterprise SSO, PCI controls, row-level security and cloud deployment.
 
 Workflow review writes use a demo role header, not real identity:

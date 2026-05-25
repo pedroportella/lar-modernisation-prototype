@@ -31,3 +31,11 @@ The workflow uses current action major versions and relies on `packageManager` f
 ## Prototype Boundaries
 
 Payment provider integration, warehouse feeds, HRIS feeds, analytics feeds, AI calls, enterprise identity, PCI controls and cloud deployment are simulated. They are called out as boundaries rather than hidden behind optimistic naming.
+
+## Govern Automation Before Model Integration
+
+The automation slice stores governance review events before introducing any AI/model provider. That keeps model risk, data sensitivity, human approval and evidence/source decisions explicit instead of presenting automation as a magic black box.
+
+## Azure Blueprint Instead Of Live Cloud
+
+The repository includes an Azure deployment blueprint rather than active infrastructure-as-code. That keeps the prototype reviewable on any laptop while still showing how the current Docker, runtime config, health, security and observability boundaries would map to Azure services.

@@ -9,6 +9,7 @@ public static class ModernisationSeedData
     {
         await dbContext.Database.EnsureCreatedAsync(cancellationToken);
         await EnsureWorkflowReviewSchemaAsync(dbContext, cancellationToken);
+        await EnsureAutomationGovernanceReviewSchemaAsync(dbContext, cancellationToken);
 
         if (await dbContext.Workstreams.AnyAsync(cancellationToken))
         {
@@ -202,6 +203,35 @@ public static class ModernisationSeedData
             """
             CREATE INDEX IF NOT EXISTS "IX_WorkflowReviews_Slice_RecordId_Id"
             ON "WorkflowReviews" ("Slice", "RecordId", "Id");
+            """,
+            cancellationToken);
+    }
+
+    private static async Task EnsureAutomationGovernanceReviewSchemaAsync(
+        ModernisationDbContext dbContext,
+        CancellationToken cancellationToken)
+    {
+        await dbContext.Database.ExecuteSqlRawAsync(
+            """
+            CREATE TABLE IF NOT EXISTS "AutomationGovernanceReviews" (
+                "Id" INTEGER NOT NULL CONSTRAINT "PK_AutomationGovernanceReviews" PRIMARY KEY AUTOINCREMENT,
+                "CandidateId" INTEGER NOT NULL,
+                "TriageStatus" TEXT NOT NULL,
+                "DataSensitivity" TEXT NOT NULL,
+                "HumanApprovalRequired" INTEGER NOT NULL,
+                "ModelRisk" TEXT NOT NULL,
+                "ExpectedBenefit" TEXT NOT NULL,
+                "EvidenceSource" TEXT NOT NULL,
+                "ReviewedBy" TEXT NOT NULL,
+                "ReviewedAtUtc" TEXT NOT NULL
+            );
+            """,
+            cancellationToken);
+
+        await dbContext.Database.ExecuteSqlRawAsync(
+            """
+            CREATE INDEX IF NOT EXISTS "IX_AutomationGovernanceReviews_CandidateId_Id"
+            ON "AutomationGovernanceReviews" ("CandidateId", "Id");
             """,
             cancellationToken);
     }

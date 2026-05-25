@@ -1,3 +1,4 @@
+using LargeRetailer.Modernisation.Application.AutomationGovernance;
 using LargeRetailer.Modernisation.Application.Features;
 using LargeRetailer.Modernisation.Application.Readiness;
 using LargeRetailer.Modernisation.Application.Workstreams;
@@ -14,6 +15,7 @@ var builder = WebApplication.CreateBuilder(args);
 var frontendOrigins = FrontendCorsOrigins.From(builder.Configuration, builder.Environment);
 
 builder.Services.AddOpenApi();
+builder.Services.AddScoped<IAutomationGovernanceService, AutomationGovernanceService>();
 builder.Services.AddScoped<IFeatureSliceQueryService, FeatureSliceQueryService>();
 builder.Services.AddScoped<IProgramReadinessQueryService, ProgramReadinessQueryService>();
 builder.Services.AddScoped<IWorkstreamQueryService, WorkstreamQueryService>();
@@ -282,6 +284,40 @@ app.MapGet("/api/automation/candidates", async (
             cancellationToken),
         httpContext))
     .WithName("GetAutomationCandidates");
+
+app.MapGet("/api/automation/candidates/{candidateId:int}/governance-review", async (
+        int candidateId,
+        IAutomationGovernanceService automationGovernanceService,
+        CancellationToken cancellationToken) =>
+    {
+        var review = await automationGovernanceService.GetLatestAsync(candidateId, cancellationToken);
+
+        return review is null ? Results.NotFound() : Results.Ok(review);
+    })
+    .WithName("GetLatestAutomationGovernanceReview");
+
+app.MapPost("/api/automation/candidates/{candidateId:int}/governance-review", async (
+        int candidateId,
+        AutomationGovernanceReviewRequest request,
+        HttpContext httpContext,
+        IAutomationGovernanceService automationGovernanceService,
+        CancellationToken cancellationToken) =>
+    {
+        if (!DemoAuthorisation.CanWriteWorkflowReviews(httpContext))
+        {
+            return CorrelatedResults.Problem(
+                httpContext,
+                "Automation governance writes require the DeliveryLead or Admin demo role.",
+                StatusCodes.Status403Forbidden);
+        }
+
+        var result = await automationGovernanceService.CreateAsync(candidateId, request, cancellationToken);
+
+        return result.IsValid
+            ? Results.Created($"/api/automation/candidates/{candidateId}/governance-review", result.Review)
+            : CorrelatedResults.ValidationProblem(httpContext, result.Errors);
+    })
+    .WithName("CreateAutomationGovernanceReview");
 
 app.MapGet("/api/workflow-reviews/{slice}/{recordId:int}", async (
         string slice,

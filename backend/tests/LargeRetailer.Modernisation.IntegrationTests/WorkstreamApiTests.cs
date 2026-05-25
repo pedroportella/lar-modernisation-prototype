@@ -270,6 +270,148 @@ public sealed class WorkstreamApiTests
     }
 
     [Fact]
+    public async Task Automation_governance_endpoint_persists_and_returns_latest_review()
+    {
+        var databasePath = Path.Combine(Path.GetTempPath(), $"lar-modernisation-{Guid.NewGuid():N}.db");
+
+        await using var application = new WebApplicationFactory<Program>()
+            .WithWebHostBuilder(builder =>
+            {
+                builder.ConfigureAppConfiguration((_, configurationBuilder) =>
+                {
+                    configurationBuilder.AddInMemoryCollection(new Dictionary<string, string?>
+                    {
+                        ["ConnectionStrings:ModernisationDb"] = $"Data Source={databasePath}"
+                    });
+                });
+            });
+
+        var client = application.CreateClient();
+        var candidateId = await GetSeedAutomationCandidateIdAsync(client);
+
+        var saveResponse = await PostAutomationGovernanceReviewAsync(
+            client,
+            candidateId,
+            new AutomationGovernanceReviewRequest(
+                "NeedsEvidence",
+                "Internal",
+                false,
+                "Medium",
+                "Reduce manual exception triage effort",
+                "Discovery workshop notes",
+                "Automation lead"),
+            CancellationToken.None);
+
+        var saved = await saveResponse.Content.ReadFromJsonAsync<AutomationGovernanceReviewResponse>(CancellationToken.None);
+        var saveBody = await saveResponse.Content.ReadAsStringAsync(CancellationToken.None);
+        var latest = await client.GetFromJsonAsync<AutomationGovernanceReviewResponse>(
+            $"/api/automation/candidates/{candidateId}/governance-review",
+            CancellationToken.None);
+
+        Assert.True(
+            saveResponse.StatusCode == HttpStatusCode.Created,
+            $"Expected Created but got {saveResponse.StatusCode}: {saveBody}");
+        Assert.NotNull(saved);
+        Assert.Equal(candidateId, saved.CandidateId);
+        Assert.NotNull(latest);
+        Assert.Equal(saved.Id, latest.Id);
+        Assert.Equal("NeedsEvidence", latest.TriageStatus);
+    }
+
+    [Fact]
+    public async Task Automation_governance_endpoint_requires_human_approval_for_high_risk_candidates()
+    {
+        var databasePath = Path.Combine(Path.GetTempPath(), $"lar-modernisation-{Guid.NewGuid():N}.db");
+
+        await using var application = new WebApplicationFactory<Program>()
+            .WithWebHostBuilder(builder =>
+            {
+                builder.ConfigureAppConfiguration((_, configurationBuilder) =>
+                {
+                    configurationBuilder.AddInMemoryCollection(new Dictionary<string, string?>
+                    {
+                        ["ConnectionStrings:ModernisationDb"] = $"Data Source={databasePath}"
+                    });
+                });
+            });
+
+        var client = application.CreateClient();
+        var candidateId = await GetSeedAutomationCandidateIdAsync(client);
+
+        var response = await PostAutomationGovernanceReviewAsync(
+            client,
+            candidateId,
+            new AutomationGovernanceReviewRequest(
+                "RequiresGovernanceBoard",
+                "Restricted",
+                false,
+                "High",
+                "Reduce manual exception triage effort",
+                "Discovery workshop notes",
+                "Automation lead"),
+            CancellationToken.None);
+        var problem = await JsonDocument.ParseAsync(
+            await response.Content.ReadAsStreamAsync(CancellationToken.None),
+            cancellationToken: CancellationToken.None);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.True(problem.RootElement.GetProperty("errors").TryGetProperty("humanApprovalRequired", out _));
+    }
+
+    [Fact]
+    public async Task Automation_governance_endpoint_rejects_unsupported_transition()
+    {
+        var databasePath = Path.Combine(Path.GetTempPath(), $"lar-modernisation-{Guid.NewGuid():N}.db");
+
+        await using var application = new WebApplicationFactory<Program>()
+            .WithWebHostBuilder(builder =>
+            {
+                builder.ConfigureAppConfiguration((_, configurationBuilder) =>
+                {
+                    configurationBuilder.AddInMemoryCollection(new Dictionary<string, string?>
+                    {
+                        ["ConnectionStrings:ModernisationDb"] = $"Data Source={databasePath}"
+                    });
+                });
+            });
+
+        var client = application.CreateClient();
+        var candidateId = await GetSeedAutomationCandidateIdAsync(client);
+
+        var rejectedResponse = await PostAutomationGovernanceReviewAsync(
+            client,
+            candidateId,
+            new AutomationGovernanceReviewRequest(
+                "Rejected",
+                "Internal",
+                false,
+                "Low",
+                "Benefit does not justify effort",
+                "Governance review notes",
+                "Automation lead"),
+            CancellationToken.None);
+        var approvedResponse = await PostAutomationGovernanceReviewAsync(
+            client,
+            candidateId,
+            new AutomationGovernanceReviewRequest(
+                "ApprovedForPrototype",
+                "Internal",
+                false,
+                "Low",
+                "Reduce manual exception triage effort",
+                "Discovery workshop notes",
+                "Automation lead"),
+            CancellationToken.None);
+        var problem = await JsonDocument.ParseAsync(
+            await approvedResponse.Content.ReadAsStreamAsync(CancellationToken.None),
+            cancellationToken: CancellationToken.None);
+
+        Assert.Equal(HttpStatusCode.Created, rejectedResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, approvedResponse.StatusCode);
+        Assert.True(problem.RootElement.GetProperty("errors").TryGetProperty("triageStatus", out _));
+    }
+
+    [Fact]
     public async Task Workflow_review_endpoint_rejects_invalid_payload()
     {
         var databasePath = Path.Combine(Path.GetTempPath(), $"lar-modernisation-{Guid.NewGuid():N}.db");
@@ -547,6 +689,60 @@ public sealed class WorkstreamApiTests
         string Note,
         string ReviewedBy,
         DateTimeOffset ReviewedAtUtc);
+
+    private sealed record AutomationGovernanceReviewRequest(
+        string TriageStatus,
+        string DataSensitivity,
+        bool HumanApprovalRequired,
+        string ModelRisk,
+        string ExpectedBenefit,
+        string EvidenceSource,
+        string ReviewedBy);
+
+    private sealed record AutomationGovernanceReviewResponse(
+        int Id,
+        int CandidateId,
+        string TriageStatus,
+        string DataSensitivity,
+        bool HumanApprovalRequired,
+        string ModelRisk,
+        string ExpectedBenefit,
+        string EvidenceSource,
+        string ReviewedBy,
+        DateTimeOffset ReviewedAtUtc);
+
+    private static Task<HttpResponseMessage> PostAutomationGovernanceReviewAsync(
+        HttpClient client,
+        int candidateId,
+        AutomationGovernanceReviewRequest request,
+        CancellationToken cancellationToken,
+        string? role = "DeliveryLead")
+    {
+        var httpRequest = new HttpRequestMessage(
+            HttpMethod.Post,
+            $"/api/automation/candidates/{candidateId}/governance-review")
+        {
+            Content = JsonContent.Create(request)
+        };
+
+        if (!string.IsNullOrWhiteSpace(role))
+        {
+            httpRequest.Headers.Add("X-LAR-DEMO-ROLE", role);
+        }
+
+        return client.SendAsync(httpRequest, cancellationToken);
+    }
+
+    private static async Task<int> GetSeedAutomationCandidateIdAsync(HttpClient client)
+    {
+        var candidates = await client.GetFromJsonAsync<PagedResponse<JsonElement>>(
+            "/api/automation/candidates",
+            CancellationToken.None);
+
+        Assert.NotNull(candidates);
+
+        return candidates.Items.Single().GetProperty("id").GetInt32();
+    }
 
     private static Task<HttpResponseMessage> PostWorkflowReviewAsync(
         HttpClient client,

@@ -1,6 +1,8 @@
+using LargeRetailer.Modernisation.Application.AutomationGovernance;
 using LargeRetailer.Modernisation.Application.Features;
 using LargeRetailer.Modernisation.Application.Workstreams;
 using LargeRetailer.Modernisation.Application.WorkflowReviews;
+using LargeRetailer.Modernisation.Infrastructure.AutomationGovernance;
 using LargeRetailer.Modernisation.Infrastructure.Features;
 using LargeRetailer.Modernisation.Infrastructure.Persistence;
 using LargeRetailer.Modernisation.Infrastructure.Workstreams;
@@ -20,6 +22,7 @@ public static class DependencyInjection
 
         services.AddDbContext<ModernisationDbContext>(options => options.UseSqlite(connectionString));
         services.AddScoped<IFeatureSliceRepository, EfFeatureSliceRepository>();
+        services.AddScoped<IAutomationGovernanceRepository, EfAutomationGovernanceRepository>();
         services.AddScoped<IWorkstreamRepository, EfWorkstreamRepository>();
         services.AddScoped<IWorkflowReviewRepository, EfWorkflowReviewRepository>();
 

@@ -34,6 +34,8 @@ A production path would keep the same separation of concerns:
 - inject runtime API URL, CORS origins and database connection strings through environment-specific configuration;
 - add identity, observability, secret management and deployment approvals before any real client data is used.
 
+For an Azure-specific promotion sketch, see [azure-deployment-blueprint.md](azure-deployment-blueprint.md). The blueprint maps the current Docker package to Azure Static Web Apps or App Service, Container Apps or App Service for the API, Azure SQL, Key Vault, Application Insights and GitHub Actions environments.
+
 ## Security Hardening Notes
 
 The prototype now carries a visible baseline security posture:

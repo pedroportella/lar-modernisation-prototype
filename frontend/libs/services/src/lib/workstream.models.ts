@@ -61,6 +61,29 @@ export interface AutomationCandidate {
   recommendedNextStep: string;
 }
 
+export interface AutomationGovernanceReview {
+  id: number;
+  candidateId: number;
+  triageStatus: string;
+  dataSensitivity: string;
+  humanApprovalRequired: boolean;
+  modelRisk: string;
+  expectedBenefit: string;
+  evidenceSource: string;
+  reviewedBy: string;
+  reviewedAtUtc: string;
+}
+
+export interface AutomationGovernanceReviewRequest {
+  triageStatus: string;
+  dataSensitivity: string;
+  humanApprovalRequired: boolean;
+  modelRisk: string;
+  expectedBenefit: string;
+  evidenceSource: string;
+  reviewedBy: string;
+}
+
 export interface FeatureQuery {
   search?: string;
   status?: string;

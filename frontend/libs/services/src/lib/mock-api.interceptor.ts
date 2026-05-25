@@ -18,6 +18,8 @@ import {
   mockWorkstreams,
 } from './mock-api.fixtures';
 import {
+  AutomationGovernanceReview,
+  AutomationGovernanceReviewRequest,
   FeatureQuery,
   PagedResponse,
   WorkflowReview,
@@ -36,7 +38,12 @@ const mockRoutes: Record<string, unknown> = {
 };
 
 const workflowReviews = new Map<string, WorkflowReview>();
+const automationGovernanceReviews = new Map<
+  string,
+  AutomationGovernanceReview
+>();
 let workflowReviewId = 1;
+let automationGovernanceReviewId = 1;
 
 export const larMockApiInterceptor: HttpInterceptorFn = (request, next) => {
   if (!inject(LAR_RUNTIME_CONFIG).mockApi) {
@@ -87,6 +94,19 @@ function mockResponseForRequest(
       method,
       workflowReviewMatch[1],
       workflowReviewMatch[2],
+      role,
+      body,
+    );
+  }
+
+  const automationGovernanceMatch = path.match(
+    /^\/api\/automation\/candidates\/([^/]+)\/governance-review$/,
+  );
+
+  if (automationGovernanceMatch) {
+    return mockAutomationGovernanceReviewResponse(
+      method,
+      automationGovernanceMatch[1],
       role,
       body,
     );
@@ -256,6 +276,77 @@ function mockWorkflowReviewResponse(
   };
 
   workflowReviews.set(key, review);
+
+  return { body: review, status: 201 };
+}
+
+function mockAutomationGovernanceReviewResponse(
+  method: string,
+  candidateId: string,
+  role: string | null,
+  body: unknown,
+): { body: unknown; status: number } | HttpErrorResponse {
+  if (method === 'GET') {
+    const review = automationGovernanceReviews.get(candidateId);
+
+    return review
+      ? { body: review, status: 200 }
+      : new HttpErrorResponse({ status: 404, statusText: 'Not Found' });
+  }
+
+  if (method !== 'POST') {
+    return new HttpErrorResponse({
+      status: 405,
+      statusText: 'Method Not Allowed',
+    });
+  }
+
+  if (!['DeliveryLead', 'Admin'].includes(role ?? '')) {
+    return new HttpErrorResponse({
+      status: 403,
+      statusText: 'Forbidden',
+    });
+  }
+
+  if (
+    !mockAutomationCandidates.some(
+      (candidate) => String(candidate.id) === candidateId,
+    )
+  ) {
+    return new HttpErrorResponse({ status: 400, statusText: 'Bad Request' });
+  }
+
+  const request = body as AutomationGovernanceReviewRequest;
+  const highRisk =
+    request.modelRisk === 'High' || request.dataSensitivity === 'Restricted';
+
+  if (highRisk && !request.humanApprovalRequired) {
+    return new HttpErrorResponse({ status: 400, statusText: 'Bad Request' });
+  }
+
+  const latest = automationGovernanceReviews.get(candidateId);
+
+  if (
+    latest?.triageStatus === 'Rejected' &&
+    request.triageStatus === 'ApprovedForPrototype'
+  ) {
+    return new HttpErrorResponse({ status: 400, statusText: 'Bad Request' });
+  }
+
+  const review: AutomationGovernanceReview = {
+    id: automationGovernanceReviewId++,
+    candidateId: Number(candidateId),
+    triageStatus: request.triageStatus,
+    dataSensitivity: request.dataSensitivity,
+    humanApprovalRequired: request.humanApprovalRequired,
+    modelRisk: request.modelRisk,
+    expectedBenefit: request.expectedBenefit,
+    evidenceSource: request.evidenceSource,
+    reviewedBy: request.reviewedBy,
+    reviewedAtUtc: new Date().toISOString(),
+  };
+
+  automationGovernanceReviews.set(candidateId, review);
 
   return { body: review, status: 201 };
 }
