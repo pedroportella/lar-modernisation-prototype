@@ -75,13 +75,13 @@
                     @for (column of state.config.columns; track column.key) {
                       <td>
                         @if (column.key === state.config.primaryKey) {
-                          <button type="button" class="record-link" (click)="selectRecord(record)">
-                            {{ valueFor(record, column) }}
+                          <button type="button" class="record-link" (click)="selectRecord(record, state.config)">
+                            {{ valueFor(record, column, state.config) }}
                           </button>
                         } @else if (isStatusColumn(column, state.config)) {
-                          <lar-status-tag [status]="valueFor(record, column).toString()"></lar-status-tag>
+                          <lar-status-tag [status]="valueFor(record, column, state.config).toString()"></lar-status-tag>
                         } @else {
-                          {{ valueFor(record, column) }}
+                          {{ valueFor(record, column, state.config) }}
                         }
                       </td>
                     }
@@ -101,14 +101,88 @@
                     <dt>{{ column.label }}</dt>
                     <dd>
                       @if (isStatusColumn(column, state.config)) {
-                        <lar-status-tag [status]="valueFor(record, column).toString()"></lar-status-tag>
+                        <lar-status-tag [status]="valueFor(record, column, state.config).toString()"></lar-status-tag>
                       } @else {
-                        {{ valueFor(record, column) }}
+                        {{ valueFor(record, column, state.config) }}
                       }
                     </dd>
                   </div>
                 }
               </dl>
+
+              <form
+                class="workflow-form"
+                [formGroup]="reviewForm"
+                (ngSubmit)="submitWorkflowReview(record, state.config)"
+                aria-label="Status review workflow"
+              >
+                <div class="workflow-heading">
+                  <span>Workflow update</span>
+                  @if (hasWorkflowReview(record, state.config)) {
+                    <strong>Local review applied</strong>
+                  }
+                </div>
+
+                <div class="field">
+                  <label for="workflow-status">Status review</label>
+                  <select id="workflow-status" formControlName="status">
+                    @for (status of statusReviewOptions(state.records, state.config); track status) {
+                      <option [value]="status">{{ status }}</option>
+                    }
+                  </select>
+                  @if (reviewForm.controls.status.touched && reviewForm.controls.status.invalid) {
+                    <p class="field-error">Choose a status before saving.</p>
+                  }
+                </div>
+
+                <div class="field">
+                  <label for="workflow-action">{{ actionLabel(state.config) }}</label>
+                  <input id="workflow-action" type="text" formControlName="action" />
+                  @if (reviewForm.controls.action.touched && reviewForm.controls.action.invalid) {
+                    <p class="field-error">Enter at least 8 characters for the action.</p>
+                  }
+                </div>
+
+                <div class="field">
+                  <label for="workflow-note">Review note</label>
+                  <textarea id="workflow-note" rows="4" formControlName="note"></textarea>
+                  @if (reviewForm.controls.note.touched && reviewForm.controls.note.invalid) {
+                    <p class="field-error">Add a note of at least 12 characters.</p>
+                  }
+                </div>
+
+                <div class="field">
+                  <label for="workflow-reviewed-by">Reviewed by</label>
+                  <input id="workflow-reviewed-by" type="text" formControlName="reviewedBy" />
+                  @if (reviewForm.controls.reviewedBy.touched && reviewForm.controls.reviewedBy.invalid) {
+                    <p class="field-error">Enter the reviewer or role.</p>
+                  }
+                </div>
+
+                @if (reviewForm.dirty && workflowSaveState() === 'idle') {
+                  <p class="workflow-state" role="status">Unsaved changes</p>
+                } @else if (workflowSaveState() === 'saving') {
+                  <p class="workflow-state" role="status">Saving review...</p>
+                } @else if (workflowSaveState() === 'saved') {
+                  <p class="workflow-state success" role="status">Review applied to this session.</p>
+                } @else if (workflowSaveState() === 'error') {
+                  <p class="workflow-state error" role="alert">{{ workflowError() }}</p>
+                }
+
+                <div class="workflow-actions">
+                  <button type="submit" [disabled]="workflowSaveState() === 'saving'">
+                    Save review
+                  </button>
+                  <button
+                    type="button"
+                    class="secondary"
+                    [disabled]="workflowSaveState() === 'saving'"
+                    (click)="resetWorkflowReview(record, state.config)"
+                  >
+                    Reset
+                  </button>
+                </div>
+              </form>
             </aside>
           }
         </section>

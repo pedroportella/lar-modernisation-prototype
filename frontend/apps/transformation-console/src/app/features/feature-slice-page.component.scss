@@ -17,7 +17,7 @@
 
 .field {
   display: grid;
-  gap: var(--lar-space-2);
+  gap: var(--lar-space-1);
 }
 
 .field label {
@@ -27,30 +27,44 @@
 }
 
 .filters input,
-.filters select {
+.filters select,
+.workflow-form :is(input, select, textarea) {
   min-height: 44px;
   width: 100%;
   border: 1px solid var(--lar-border-strong);
   border-radius: var(--lar-radius);
-  background: var(--lar-surface);
   color: var(--lar-text);
   padding: 0 var(--lar-space-3);
 }
 
-.filters button {
+.workflow-form textarea {
+  min-height: 104px;
+  padding: var(--lar-space-3);
+  resize: vertical;
+}
+
+.filters button,
+.workflow-actions button {
   min-height: 44px;
   border: 1px solid var(--lar-action);
   border-radius: var(--lar-radius);
-  background: var(--lar-surface);
   color: var(--lar-action);
   font-weight: 800;
   padding: 0 var(--lar-space-4);
 }
 
 .filters button:hover,
-.filters button:focus-visible {
+.filters button:focus-visible,
+.workflow-actions button:hover,
+.workflow-actions button:focus-visible {
   background: var(--lar-action);
   color: #ffffff;
+}
+
+.workflow-actions button:disabled {
+  border-color: var(--lar-border-strong);
+  color: var(--lar-text-muted);
+  cursor: wait;
 }
 
 .data-layout {
@@ -64,9 +78,6 @@
   border: 1px solid var(--lar-border);
   border-radius: var(--lar-radius);
   background: var(--lar-surface);
-}
-
-.table-wrap {
   overflow-x: auto;
 }
 
@@ -80,7 +91,6 @@ th,
 td {
   padding: var(--lar-space-4);
   border-bottom: 1px solid var(--lar-border);
-  color: var(--lar-text);
   text-align: left;
   vertical-align: top;
 }
@@ -88,7 +98,6 @@ td {
 th {
   color: var(--lar-text-muted);
   font-size: 0.78rem;
-  text-transform: uppercase;
 }
 
 tbody tr:last-child td {
@@ -108,14 +117,8 @@ tbody tr.selected td {
   font-weight: 800;
   padding: 0;
   text-align: left;
-  text-decoration: underline;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 0.16em;
-}
-
-.record-link:hover,
-.record-link:focus-visible {
-  color: var(--lar-action-strong);
+  text-decoration: underline 1px;
+  text-underline-offset: 0.18em;
 }
 
 .detail-panel {
@@ -131,13 +134,10 @@ tbody tr.selected td {
   color: var(--lar-action);
   font-size: 0.74rem;
   font-weight: 800;
-  text-transform: uppercase;
 }
 
 .detail-panel h2 {
   margin: 0;
-  color: var(--lar-text);
-  font-size: 1.35rem;
 }
 
 .detail-panel dl {
@@ -151,20 +151,61 @@ tbody tr.selected td {
   gap: var(--lar-space-1);
 }
 
-.detail-panel dt,
-.detail-panel dd {
+.detail-panel :is(dt, dd) {
   margin: 0;
 }
 
 .detail-panel dt {
   color: var(--lar-text-muted);
   font-size: 0.78rem;
-  font-weight: 800;
 }
 
 .detail-panel dd {
-  color: var(--lar-text);
   overflow-wrap: anywhere;
+}
+
+.workflow-form {
+  display: grid;
+  gap: var(--lar-space-3);
+  padding-top: var(--lar-space-4);
+  border-top: 1px solid var(--lar-border);
+}
+
+.workflow-heading {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--lar-space-2);
+  justify-content: space-between;
+}
+
+.workflow-heading strong {
+  color: var(--lar-success);
+}
+
+.field-error,
+.workflow-state {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.field-error,
+.workflow-state.error {
+  color: var(--lar-danger);
+}
+
+.workflow-state.success {
+  color: var(--lar-success);
+}
+
+.workflow-actions {
+  display: flex;
+  gap: var(--lar-space-2);
+}
+
+.workflow-actions .secondary {
+  border-color: var(--lar-border-strong);
+  color: var(--lar-text);
 }
 
 @media (max-width: 1100px) {

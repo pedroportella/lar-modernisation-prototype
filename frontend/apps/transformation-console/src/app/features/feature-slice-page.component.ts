@@ -1,7 +1,8 @@
 import { AsyncPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
-import { catchError, map, Observable, of, startWith, switchMap } from 'rxjs';
+import { catchError, map, Observable, of, startWith, switchMap, tap } from 'rxjs';
 import { TransformationApiService } from '@lar/services';
 import {
   LoadingStateComponent,
@@ -33,9 +34,19 @@ interface FeatureConfig {
   primaryKey: string;
   detailTitle: string;
   statusKey?: string;
+  actionKey?: string;
 }
 
 type FeatureRecord = Record<string, string | number>;
+type WorkflowSaveState = 'idle' | 'saving' | 'saved' | 'error';
+
+interface WorkflowReview {
+  action: string;
+  note: string;
+  reviewedAt: string;
+  reviewedBy: string;
+  status: string;
+}
 
 type FeatureState =
   | { status: 'loading'; config: FeatureConfig; records: FeatureRecord[] }
@@ -50,6 +61,7 @@ const featureConfigs: Record<string, FeatureConfig> = {
     sourceLabel: '/api/payments/migration-readiness',
     load: 'listPaymentReadiness',
     statusKey: 'status',
+    actionKey: 'nextAction',
     primaryKey: 'area',
     detailTitle: 'Readiness item',
     columns: [
@@ -67,6 +79,7 @@ const featureConfigs: Record<string, FeatureConfig> = {
     sourceLabel: '/api/warehouse/optimisation',
     load: 'listWarehouseSignals',
     statusKey: 'status',
+    actionKey: 'opportunity',
     primaryKey: 'signalName',
     detailTitle: 'Signal detail',
     columns: [
@@ -115,6 +128,7 @@ const featureConfigs: Record<string, FeatureConfig> = {
     summary: 'Candidates for automation or AI-assisted tooling with governance-aware next steps.',
     sourceLabel: '/api/automation/candidates',
     load: 'listAutomationCandidates',
+    actionKey: 'recommendedNextStep',
     primaryKey: 'workflowName',
     detailTitle: 'Candidate detail',
     columns: [
@@ -134,6 +148,7 @@ const featureConfigs: Record<string, FeatureConfig> = {
     LoadingStateComponent,
     PageAlertComponent,
     PageFrameComponent,
+    ReactiveFormsModule,
     StatusTagComponent,
     SummaryMetricComponent,
   ],
@@ -144,15 +159,30 @@ const featureConfigs: Record<string, FeatureConfig> = {
 export class FeatureSlicePageComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly transformationApi = inject(TransformationApiService);
+  private readonly formBuilder = inject(FormBuilder);
 
   protected readonly searchTerm = signal('');
   protected readonly statusFilter = signal('all');
   protected readonly selectedRecordId = signal<string | number | null>(null);
+  protected readonly workflowReviews = signal<Record<string, WorkflowReview>>({});
+  protected readonly workflowSaveState = signal<WorkflowSaveState>('idle');
+  protected readonly workflowError = signal('');
+
+  protected readonly reviewForm = this.formBuilder.nonNullable.group({
+    status: ['Monitoring', Validators.required],
+    action: ['', [Validators.required, Validators.minLength(8)]],
+    note: ['', [Validators.required, Validators.minLength(12)]],
+    reviewedBy: ['', Validators.required],
+  });
+
+  private activeWorkflowRecordKey = '';
+  private saveTimer: ReturnType<typeof setTimeout> | null = null;
 
   protected readonly state$: Observable<FeatureState> = this.route.data.pipe(
     map((data) => featureConfigs[data['slice'] as string] ?? featureConfigs['payments']),
     switchMap((config) =>
       this.loadRecords(config).pipe(
+        tap((records) => this.ensureSelectedRecord(records, config)),
         map((records): FeatureState => ({
           status: 'ready',
           config,
@@ -177,8 +207,9 @@ export class FeatureSlicePageComponent {
     this.statusFilter.set('all');
   }
 
-  protected selectRecord(record: FeatureRecord): void {
+  protected selectRecord(record: FeatureRecord, config: FeatureConfig): void {
     this.selectedRecordId.set(record['id']);
+    this.syncReviewForm(record, config);
   }
 
   protected filteredRecords(records: FeatureRecord[], config: FeatureConfig): FeatureRecord[] {
@@ -189,10 +220,13 @@ export class FeatureSlicePageComponent {
       const matchesQuery =
         !query ||
         config.columns.some((column) =>
-          String(this.valueFor(record, column)).toLowerCase().includes(query),
+          String(this.valueFor(record, column, config)).toLowerCase().includes(query),
         );
       const matchesStatus =
-        status === 'all' || !config.statusKey || String(record[config.statusKey]) === status;
+        status === 'all' ||
+        !config.statusKey ||
+        String(this.valueFor(record, { key: config.statusKey, label: 'Status' }, config)) ===
+          status;
 
       return matchesQuery && matchesStatus;
     });
@@ -210,7 +244,9 @@ export class FeatureSlicePageComponent {
     const statusKey = config.statusKey;
 
     return records.filter((record) =>
-      ['AtRisk', 'Blocked'].includes(String(record[statusKey])),
+      ['AtRisk', 'Blocked'].includes(
+        String(this.valueFor(record, { key: statusKey, label: 'Status' }, config)),
+      ),
     ).length;
   }
 
@@ -229,12 +265,92 @@ export class FeatureSlicePageComponent {
     return config.columns.filter((column) => record[column.key] !== undefined);
   }
 
-  protected valueFor(record: FeatureRecord, column: FeatureColumn): string | number {
+  protected valueFor(
+    record: FeatureRecord,
+    column: FeatureColumn,
+    config?: FeatureConfig,
+  ): string | number {
+    const review = config ? this.workflowReviews()[this.reviewKey(record, config)] : undefined;
+
+    if (review && column.key === config?.statusKey) {
+      return review.status;
+    }
+
+    if (review && column.key === config?.actionKey) {
+      return review.action;
+    }
+
     return record[column.key] ?? '';
   }
 
   protected isStatusColumn(column: FeatureColumn, config: FeatureConfig): boolean {
     return column.key === config.statusKey;
+  }
+
+  protected submitWorkflowReview(record: FeatureRecord, config: FeatureConfig): void {
+    this.syncReviewForm(record, config);
+    this.reviewForm.markAllAsTouched();
+
+    if (this.reviewForm.invalid || this.workflowSaveState() === 'saving') return;
+
+    const value = this.reviewForm.getRawValue();
+    this.workflowSaveState.set('saving');
+    this.workflowError.set('');
+
+    if (this.saveTimer) {
+      clearTimeout(this.saveTimer);
+    }
+
+    this.saveTimer = setTimeout(() => {
+      if (value.note.toLowerCase().includes('api failure')) {
+        this.workflowSaveState.set('error');
+        this.workflowError.set('Review could not be saved. Keep the form open and try again.');
+        return;
+      }
+
+      this.workflowReviews.update((reviews) => ({
+        ...reviews,
+        [this.reviewKey(record, config)]: {
+          action: value.action,
+          note: value.note,
+          reviewedAt: new Date().toISOString(),
+          reviewedBy: value.reviewedBy,
+          status: value.status,
+        },
+      }));
+      this.workflowSaveState.set('saved');
+      this.reviewForm.markAsPristine();
+    }, 350);
+  }
+
+  protected resetWorkflowReview(record: FeatureRecord, config: FeatureConfig): void {
+    this.workflowReviews.update((reviews) => {
+      const next = { ...reviews };
+      delete next[this.reviewKey(record, config)];
+      return next;
+    });
+    this.syncReviewForm(record, config, true);
+  }
+
+  protected hasWorkflowReview(record: FeatureRecord, config: FeatureConfig): boolean {
+    return this.workflowReviews()[this.reviewKey(record, config)] !== undefined;
+  }
+
+  protected actionLabel(config: FeatureConfig): string {
+    switch (config.actionKey) {
+      case 'nextAction':
+      case 'recommendedNextStep':
+        return 'Next action';
+      case 'opportunity':
+        return 'Response action';
+      default:
+        return 'Follow-up action';
+    }
+  }
+
+  protected statusReviewOptions(records: FeatureRecord[], config: FeatureConfig): string[] {
+    const existing = config.statusKey ? this.statusOptions(records, config) : [];
+    return Array.from(new Set([...existing, 'OnTrack', 'Monitoring', 'AtRisk', 'Blocked'])).sort();
   }
 
   private loadRecords(config: FeatureConfig): Observable<FeatureRecord[]> {
@@ -250,6 +366,40 @@ export class FeatureSlicePageComponent {
       case 'listAutomationCandidates':
         return this.transformationApi.listAutomationCandidates().pipe(map(toFeatureRecords));
     }
+  }
+
+  private ensureSelectedRecord(records: FeatureRecord[], config: FeatureConfig): void {
+    if (records.length === 0) return;
+
+    const selectedId = this.selectedRecordId();
+    const selectedStillExists = records.some((record) => record['id'] === selectedId);
+
+    if (!selectedStillExists) {
+      this.selectedRecordId.set(records[0]['id']);
+      this.syncReviewForm(records[0], config, true);
+    }
+  }
+
+  private syncReviewForm(record: FeatureRecord, config?: FeatureConfig, force = false): void {
+    if (!config) return;
+
+    const recordKey = this.reviewKey(record, config);
+    if (!force && this.activeWorkflowRecordKey === recordKey) return;
+
+    const review = this.workflowReviews()[recordKey];
+    this.reviewForm.reset({
+      status: review?.status ?? String(record[config.statusKey ?? 'status'] ?? 'Monitoring'),
+      action: review?.action ?? String(record[config.actionKey ?? 'nextAction'] ?? ''),
+      note: review?.note ?? '',
+      reviewedBy: review?.reviewedBy ?? '',
+    });
+    this.activeWorkflowRecordKey = recordKey;
+    this.workflowSaveState.set('idle');
+    this.workflowError.set('');
+  }
+
+  private reviewKey(record: FeatureRecord, config: FeatureConfig): string {
+    return `${config.load}:${record['id']}`;
   }
 }
 
