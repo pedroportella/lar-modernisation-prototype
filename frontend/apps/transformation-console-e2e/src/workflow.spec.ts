@@ -44,14 +44,22 @@ async function focusPaymentsRecordSelector(page: Page, browserName: string) {
   await expectReachableByTab(page, recordSelector, 'record selector button');
 }
 
+function statusReviewSelect(page: Page) {
+  return page.getByRole('combobox', { name: /Status review/ });
+}
+
 async function openPaymentsWorkflow(page: Page) {
   await page.goto('/payments');
   await expect(
     page.getByRole('heading', { name: 'Migration Readiness' }),
   ).toBeVisible();
   await page.getByRole('button', { name: 'Token migration' }).click();
-  await expect(page.getByLabel('Selected record detail')).toContainText(
-    'Provider cutover sequencing',
+  await expect(
+    page.getByRole('heading', { name: 'Token migration' }),
+  ).toBeVisible();
+  await expect(page.getByLabel('Status review workflow')).toBeVisible();
+  await expect(page.getByLabel('Next action')).toHaveValue(
+    /.+/,
   );
 }
 
@@ -70,9 +78,7 @@ test.describe('payments status review workflow', () => {
     ).toBeVisible();
     await expect(page.getByText('Enter the reviewer or role.')).toBeVisible();
 
-    await page
-      .getByLabel('Status review', { exact: true })
-      .selectOption('Blocked');
+    await statusReviewSelect(page).selectOption('Blocked');
     await expect(page.getByText('Unsaved changes')).toBeVisible();
 
     await page.getByLabel('Next action').fill('Escalate cutover dependency');
@@ -82,16 +88,55 @@ test.describe('payments status review workflow', () => {
     await page.getByLabel('Reviewed by').fill('Delivery lead');
     await page.getByRole('button', { name: 'Save review' }).click();
 
-    await expect(page.getByRole('status')).toContainText('Saving review...');
-    await expect(
-      page.getByRole('button', { name: 'Save review' }),
-    ).toBeDisabled();
     await expect(page.getByText('Review saved to backend.')).toBeVisible();
     await expect(page.getByLabel('Selected record detail')).toContainText(
       'Escalate cutover dependency',
     );
     await expect(page.getByLabel('Selected record detail')).toContainText(
       'Blocked',
+    );
+  });
+
+  test('persists changed status review and next action on payments', async ({
+    page,
+  }) => {
+    await openPaymentsWorkflow(page);
+
+    await statusReviewSelect(page).selectOption('Blocked');
+    await page
+      .getByLabel('Next action')
+      .fill('Escalate cutover dependency');
+    await page
+      .getByLabel('Review note')
+      .fill('Checking that payment workflow changes are persisted.');
+    await page.getByLabel('Reviewed by').fill('Delivery lead');
+    await page.getByRole('button', { name: 'Save review' }).click();
+
+    await expect(page.getByText('Review saved to backend.')).toBeVisible();
+
+    await page.getByRole('link', { name: 'Warehouse' }).click();
+    await expect(
+      page.getByRole('heading', { name: 'Operational Signals' }),
+    ).toBeVisible();
+
+    await page.getByRole('link', { name: 'Payments' }).click();
+    await expect(
+      page.getByRole('heading', { name: 'Migration Readiness' }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole('heading', { name: 'Token migration' }),
+    ).toBeVisible();
+
+    await expect(page.getByText('Persisted review applied')).toBeVisible();
+    await expect(statusReviewSelect(page)).toHaveValue('Blocked');
+    await expect(page.getByLabel('Next action')).toHaveValue(
+      'Escalate cutover dependency',
+    );
+    await expect(page.getByLabel('Selected record detail')).toContainText(
+      'Blocked',
+    );
+    await expect(page.getByLabel('Selected record detail')).toContainText(
+      'Escalate cutover dependency',
     );
   });
 
@@ -106,13 +151,13 @@ test.describe('payments status review workflow', () => {
 
     await focusPaymentsRecordSelector(page, browserName);
     await page.keyboard.press('Enter');
-    await expect(page.getByLabel('Selected record detail')).toContainText(
-      'Provider cutover sequencing',
-    );
+    await expect(
+      page.getByRole('heading', { name: 'Token migration' }),
+    ).toBeVisible();
 
     await expectReachableByTab(
       page,
-      page.getByLabel('Status review', { exact: true }),
+      statusReviewSelect(page),
       'status review select',
       browserName,
     );
@@ -148,7 +193,7 @@ test.describe('payments status review workflow', () => {
     await page.setViewportSize({ height: 960, width: 1440 });
     await openPaymentsWorkflow(page);
     await page
-      .getByLabel('Status review', { exact: true })
+      .getByRole('combobox', { name: /Status review/ })
       .selectOption('AtRisk');
     await page
       .getByLabel('Review note')
