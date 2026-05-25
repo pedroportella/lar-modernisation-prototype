@@ -6,8 +6,8 @@ The client framing is intentionally neutral. The prototype demonstrates delivery
 
 ## Screenshots
 
-| Dashboard and runtime posture                                         | Payments workflow review                                                |
-| --------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| Dashboard and runtime posture                                                            | Payments workflow review                                                         |
+| ---------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
 | ![Transformation Delivery Console dashboard](docs/screenshots/lar-dashboard-runtime.png) | ![Payment migration workflow review](docs/screenshots/lar-payments-workflow.png) |
 
 ## Repository Shape
@@ -185,4 +185,4 @@ Workflow review writes use a demo role header, not real identity:
 X-LAR-DEMO-ROLE: DeliveryLead
 ```
 
-Those boundaries should be named honestly before production expansion.
+Those boundaries should be named honestly in case of production expansion.
