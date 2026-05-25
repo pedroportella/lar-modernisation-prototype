@@ -43,6 +43,21 @@
             state.statusReport.generatedAtUtc | date: 'medium'
           }}</strong>
         </div>
+        <div>
+          <span>Correlation</span>
+          <strong>{{ state.statusReport.correlationId }}</strong>
+        </div>
+        <div>
+          <span>Build</span>
+          <strong
+            >{{ state.statusReport.runtime.buildName }}
+            {{ state.statusReport.runtime.buildVersion }}</strong
+          >
+        </div>
+        <div>
+          <span>Trace header</span>
+          <strong>{{ state.statusReport.runtime.correlationHeader }}</strong>
+        </div>
       </section>
 
       <section class="counts" aria-label="Seeded data counts">

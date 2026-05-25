@@ -4,7 +4,9 @@ using LargeRetailer.Modernisation.Application.Workstreams;
 using LargeRetailer.Modernisation.Application.WorkflowReviews;
 using LargeRetailer.Modernisation.Infrastructure;
 using LargeRetailer.Modernisation.Infrastructure.Persistence;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.EntityFrameworkCore;
+using System.Diagnostics;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -38,6 +40,40 @@ if (app.Environment.IsDevelopment())
 
 app.UseCors("AngularDev");
 
+app.Use(async (context, next) =>
+{
+    var correlationId = CorrelationIds.Ensure(context);
+    context.Response.Headers[CorrelationIds.HeaderName] = correlationId;
+
+    var logger = context.RequestServices
+        .GetRequiredService<ILoggerFactory>()
+        .CreateLogger("LargeRetailer.Modernisation.Api.Requests");
+    var stopwatch = Stopwatch.StartNew();
+
+    using (logger.BeginScope(new Dictionary<string, object>
+    {
+        ["CorrelationId"] = correlationId
+    }))
+    {
+        logger.LogInformation(
+            "Handling {Method} {Path} with correlation {CorrelationId}.",
+            context.Request.Method,
+            context.Request.Path,
+            correlationId);
+
+        await next(context);
+
+        stopwatch.Stop();
+        logger.LogInformation(
+            "Handled {Method} {Path} with status {StatusCode} in {ElapsedMilliseconds}ms and correlation {CorrelationId}.",
+            context.Request.Method,
+            context.Request.Path,
+            context.Response.StatusCode,
+            stopwatch.ElapsedMilliseconds,
+            correlationId);
+    }
+});
+
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<ModernisationDbContext>();
@@ -51,6 +87,7 @@ app.MapGet("/health/live", () => Results.Ok(new HealthResponse("Healthy", "Large
     .WithName("Liveness");
 
 app.MapGet("/health/ready", async (
+        HttpContext httpContext,
         ModernisationDbContext dbContext,
         CancellationToken cancellationToken) =>
     {
@@ -58,13 +95,18 @@ app.MapGet("/health/ready", async (
 
         return canConnect
             ? Results.Ok(new HealthResponse("Ready", "LargeRetailer.Modernisation.Api"))
-            : Results.Problem("Modernisation database is not reachable.", statusCode: StatusCodes.Status503ServiceUnavailable);
+            : CorrelatedResults.Problem(
+                httpContext,
+                "Modernisation database is not reachable.",
+                StatusCodes.Status503ServiceUnavailable);
     })
     .WithName("Readiness");
 
 app.MapGet("/api/operations/status", async (
+        HttpContext httpContext,
         ModernisationDbContext dbContext,
         IWebHostEnvironment environment,
+        IConfiguration configuration,
         CancellationToken cancellationToken) =>
     {
         var counts = new OperationalDatasetCounts(
@@ -81,6 +123,14 @@ app.MapGet("/api/operations/status", async (
             "Ready",
             environment.EnvironmentName,
             DateTimeOffset.UtcNow,
+            CorrelationIds.Current(httpContext),
+            new OperationalRuntimeStatus(
+                typeof(Program).Assembly.GetName().Name ?? "LargeRetailer.Modernisation.Api",
+                typeof(Program).Assembly.GetName().Version?.ToString() ?? "0.0.0",
+                configuration.GetConnectionString("ModernisationDb")?.StartsWith("Data Source=", StringComparison.OrdinalIgnoreCase) == true
+                    ? "SQLite"
+                    : "Configured database",
+                CorrelationIds.HeaderName),
             new OperationalDatabaseStatus("SQLite", "Reachable"),
             counts);
 
@@ -167,16 +217,17 @@ app.MapPost("/api/workflow-reviews/{slice}/{recordId:int}", async (
     {
         if (!DemoAuthorisation.CanWriteWorkflowReviews(httpContext))
         {
-            return Results.Problem(
+            return CorrelatedResults.Problem(
+                httpContext,
                 "Workflow review writes require the DeliveryLead or Admin demo role.",
-                statusCode: StatusCodes.Status403Forbidden);
+                StatusCodes.Status403Forbidden);
         }
 
         var result = await workflowReviewService.CreateAsync(slice, recordId, request, cancellationToken);
 
         return result.IsValid
             ? Results.Created($"/api/workflow-reviews/{slice}/{recordId}", result.Review)
-            : Results.ValidationProblem(result.Errors);
+            : CorrelatedResults.ValidationProblem(httpContext, result.Errors);
     })
     .WithName("CreateWorkflowReview");
 
@@ -189,8 +240,16 @@ public sealed record OperationalStatusResponse(
     string Status,
     string Environment,
     DateTimeOffset GeneratedAtUtc,
+    string CorrelationId,
+    OperationalRuntimeStatus Runtime,
     OperationalDatabaseStatus Database,
     OperationalDatasetCounts Counts);
+
+public sealed record OperationalRuntimeStatus(
+    string BuildName,
+    string BuildVersion,
+    string DatabaseProvider,
+    string CorrelationHeader);
 
 public sealed record OperationalDatabaseStatus(string Provider, string Status);
 

@@ -192,6 +192,13 @@ export const mockOperationsStatus: OperationalStatus = {
   status: 'Ready',
   environment: 'Mock',
   generatedAtUtc: '2026-05-25T00:00:00Z',
+  correlationId: 'mock-correlation-id',
+  runtime: {
+    buildName: 'LargeRetailer.Modernisation.Api',
+    buildVersion: 'mock',
+    databaseProvider: 'Mock data',
+    correlationHeader: 'X-Correlation-ID',
+  },
   database: {
     provider: 'Mock data',
     status: 'Available',

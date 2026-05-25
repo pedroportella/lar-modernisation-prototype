@@ -66,8 +66,17 @@ export interface OperationalStatus {
   status: string;
   environment: string;
   generatedAtUtc: string;
+  correlationId: string;
+  runtime: OperationalRuntimeStatus;
   database: OperationalDatabaseStatus;
   counts: OperationalDatasetCounts;
+}
+
+export interface OperationalRuntimeStatus {
+  buildName: string;
+  buildVersion: string;
+  databaseProvider: string;
+  correlationHeader: string;
 }
 
 export interface OperationalDatabaseStatus {

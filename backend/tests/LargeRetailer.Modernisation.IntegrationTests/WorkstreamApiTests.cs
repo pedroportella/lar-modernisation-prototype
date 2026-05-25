@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
 
@@ -84,6 +85,9 @@ public sealed class WorkstreamApiTests
 
         Assert.NotNull(status);
         Assert.Equal("Ready", status.Status);
+        Assert.False(string.IsNullOrWhiteSpace(status.CorrelationId));
+        Assert.Equal("X-Correlation-ID", status.Runtime.CorrelationHeader);
+        Assert.Equal("SQLite", status.Runtime.DatabaseProvider);
         Assert.Equal("SQLite", status.Database.Provider);
         Assert.Equal("Reachable", status.Database.Status);
         Assert.Equal(5, status.Counts.Workstreams);
@@ -264,6 +268,103 @@ public sealed class WorkstreamApiTests
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
 
+    [Fact]
+    public async Task Api_returns_correlation_id_when_none_is_supplied()
+    {
+        var databasePath = Path.Combine(Path.GetTempPath(), $"lar-modernisation-{Guid.NewGuid():N}.db");
+
+        await using var application = new WebApplicationFactory<Program>()
+            .WithWebHostBuilder(builder =>
+            {
+                builder.ConfigureAppConfiguration((_, configurationBuilder) =>
+                {
+                    configurationBuilder.AddInMemoryCollection(new Dictionary<string, string?>
+                    {
+                        ["ConnectionStrings:ModernisationDb"] = $"Data Source={databasePath}"
+                    });
+                });
+            });
+
+        var client = application.CreateClient();
+
+        var response = await client.GetAsync("/api/operations/status", CancellationToken.None);
+
+        Assert.True(response.Headers.TryGetValues("X-Correlation-ID", out var values));
+        Assert.False(string.IsNullOrWhiteSpace(values.Single()));
+    }
+
+    [Fact]
+    public async Task Api_preserves_supplied_correlation_id()
+    {
+        var databasePath = Path.Combine(Path.GetTempPath(), $"lar-modernisation-{Guid.NewGuid():N}.db");
+        var suppliedCorrelationId = $"review-{Guid.NewGuid():N}";
+
+        await using var application = new WebApplicationFactory<Program>()
+            .WithWebHostBuilder(builder =>
+            {
+                builder.ConfigureAppConfiguration((_, configurationBuilder) =>
+                {
+                    configurationBuilder.AddInMemoryCollection(new Dictionary<string, string?>
+                    {
+                        ["ConnectionStrings:ModernisationDb"] = $"Data Source={databasePath}"
+                    });
+                });
+            });
+
+        var client = application.CreateClient();
+        var request = new HttpRequestMessage(HttpMethod.Get, "/api/operations/status");
+        request.Headers.Add("X-Correlation-ID", suppliedCorrelationId);
+
+        var response = await client.SendAsync(request, CancellationToken.None);
+        var status = await response.Content.ReadFromJsonAsync<OperationalStatusResponse>(CancellationToken.None);
+
+        Assert.True(response.Headers.TryGetValues("X-Correlation-ID", out var values));
+        Assert.Equal(suppliedCorrelationId, values.Single());
+        Assert.NotNull(status);
+        Assert.Equal(suppliedCorrelationId, status.CorrelationId);
+    }
+
+    [Fact]
+    public async Task Problem_responses_include_correlation_id()
+    {
+        var databasePath = Path.Combine(Path.GetTempPath(), $"lar-modernisation-{Guid.NewGuid():N}.db");
+        const string suppliedCorrelationId = "denied-review-write";
+
+        await using var application = new WebApplicationFactory<Program>()
+            .WithWebHostBuilder(builder =>
+            {
+                builder.ConfigureAppConfiguration((_, configurationBuilder) =>
+                {
+                    configurationBuilder.AddInMemoryCollection(new Dictionary<string, string?>
+                    {
+                        ["ConnectionStrings:ModernisationDb"] = $"Data Source={databasePath}"
+                    });
+                });
+            });
+
+        var client = application.CreateClient();
+        var httpRequest = new HttpRequestMessage(HttpMethod.Post, "/api/workflow-reviews/payments/1")
+        {
+            Content = JsonContent.Create(new WorkflowReviewRequest(
+                "Blocked",
+                "Escalate cutover dependency",
+                "Reviewed with release lead and dependency owner.",
+                "Delivery lead"))
+        };
+        httpRequest.Headers.Add("X-Correlation-ID", suppliedCorrelationId);
+        httpRequest.Headers.Add("X-LAR-DEMO-ROLE", "Viewer");
+
+        var response = await client.SendAsync(httpRequest, CancellationToken.None);
+        var problem = await JsonDocument.ParseAsync(
+            await response.Content.ReadAsStreamAsync(CancellationToken.None),
+            cancellationToken: CancellationToken.None);
+
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        Assert.Equal(
+            suppliedCorrelationId,
+            problem.RootElement.GetProperty("correlationId").GetString());
+    }
+
     private sealed record WorkstreamResponse(
         string Id,
         string Name,
@@ -276,8 +377,16 @@ public sealed class WorkstreamApiTests
         string Status,
         string Environment,
         DateTimeOffset GeneratedAtUtc,
+        string CorrelationId,
+        OperationalRuntimeStatus Runtime,
         OperationalDatabaseStatus Database,
         OperationalDatasetCounts Counts);
+
+    private sealed record OperationalRuntimeStatus(
+        string BuildName,
+        string BuildVersion,
+        string DatabaseProvider,
+        string CorrelationHeader);
 
     private sealed record OperationalDatabaseStatus(string Provider, string Status);
 
