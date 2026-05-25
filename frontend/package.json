@@ -3,11 +3,12 @@
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
-    "dev": "pnpm exec nx serve transformation-console",
+    "config:local": "node scripts/write-runtime-config.mjs",
+    "dev": "pnpm config:local && pnpm exec nx serve transformation-console",
     "build": "pnpm exec nx build transformation-console",
     "lint": "pnpm exec nx lint transformation-console",
     "test": "pnpm exec nx test transformation-console",
-    "test:e2e": "pnpm exec nx e2e transformation-console-e2e"
+    "test:e2e": "pnpm config:local && pnpm exec nx e2e transformation-console-e2e"
   },
   "private": true,
   "dependencies": {
