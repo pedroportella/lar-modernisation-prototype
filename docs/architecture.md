@@ -64,7 +64,7 @@ This follows the Angular/Nx convention of `apps` plus `libs`, instead of a Next.
 
 The API exposes health, operations status, program readiness, workstreams and five feature slices. Feature data is intentionally seeded but flows through the same boundaries a production implementation would extend.
 
-Automation governance reviews are append-only events tied to automation candidates. They capture triage status, data sensitivity, model risk, expected benefit, evidence/source and reviewer details before any model-provider integration is introduced.
+Automation governance reviews are append-only events tied to automation candidates. They capture triage status, data sensitivity, model risk, expected benefit, evidence/source and reviewer details before any model-provider integration is introduced. This is an engineering handover boundary: a reviewer can inspect the API contract, persistence model and validation rules without needing access to an external provider.
 
 ## Verification
 

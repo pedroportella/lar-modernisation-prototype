@@ -6,7 +6,19 @@ The prototype uses one git repository for the Angular frontend and .NET backend.
 
 ## Angular/Nx Uses `apps` And `libs`
 
-The frontend uses Nx-style `apps` and `libs` folders. Shared Angular code lives in `libs`, not `packages`, because `libs` is the expected Angular/Nx workspace language and gives reviewers a clearer signal than mirroring Next.js conventions.
+The frontend uses Nx-style `apps` and `libs` folders because this is the expected Angular workspace language and it makes reuse boundaries visible to reviewers.
+
+`apps/transformation-console` owns application composition: routes, page wiring, runtime providers and feature orchestration. It should stay thin enough that a second Angular app could reuse the same lower-level building blocks without copying route-local code.
+
+The `libs` folder is intentionally split by reusable responsibility:
+
+- `libs/services` owns typed DTOs, API methods and request/response contracts. Components consume methods from this library rather than hand-building HTTP URLs.
+- `libs/ui-library` owns reusable shell, layout and UI components that can be shared across dashboard, readiness, feature-slice and operations routes.
+- `libs/ui-tokens` owns design tokens and visual constants so repeated spacing, colour and typography decisions do not drift between pages.
+- `libs/ui-assets` owns neutral brand metadata and asset-facing structures that are separate from component logic.
+- `libs/utils` owns small pure helpers that are safe to reuse across app and library code.
+
+This keeps the prototype closer to a maintainable Angular application than a single-app demo. It also gives future work a clear place to add reusable services, table adapters, form helpers or design-system wrappers without turning feature routes into duplicated implementation islands.
 
 ## Runtime API Configuration
 
@@ -30,11 +42,11 @@ The workflow uses current action major versions and relies on `packageManager` f
 
 ## Prototype Boundaries
 
-Payment provider integration, warehouse feeds, HRIS feeds, analytics feeds, AI calls, enterprise identity, PCI controls and cloud deployment are simulated. They are called out as boundaries rather than hidden behind optimistic naming.
+Payment provider integration, warehouse feeds, HRIS feeds, analytics feeds, model-provider calls, enterprise identity, PCI controls and cloud deployment are simulated. They are called out as boundaries rather than hidden behind optimistic naming.
 
-## Govern Automation Before Model Integration
+## Govern Automation Before Model-Provider Integration
 
-The automation slice stores governance review events before introducing any AI/model provider. That keeps model risk, data sensitivity, human approval and evidence/source decisions explicit instead of presenting automation as a magic black box.
+The automation slice stores governance review events before introducing any model provider. That keeps model risk, data sensitivity, human approval and evidence/source decisions explicit, reviewable and testable.
 
 ## Azure Blueprint Instead Of Live Cloud
 

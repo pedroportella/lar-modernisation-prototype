@@ -2,6 +2,8 @@
 
 This prototype is one git repository with an Angular/Nx frontend and a layered .NET API backend.
 
+The runbook is written for a technical reviewer. It should help you verify how the work is structured, how to run it locally, which quality gates pass and where the production boundaries are.
+
 ## Quick Orientation
 
 - Frontend app: `frontend/apps/transformation-console`
@@ -93,7 +95,7 @@ Use this path when walking a reviewer through the prototype:
 1. Start at `http://localhost:4200/` and show the portfolio view of seeded workstreams.
 2. Open `Readiness` to show the derived program score, signals and recommended next actions.
 3. Open `Payments` and `Warehouse` to show thin vertical slices over the same backend data shape.
-4. Open `Automation` to show prioritised opportunity triage.
+4. Open `Automation` to show prioritised operational triage and the backend governance contract for candidate review.
 5. Open `Operations` last to show runtime readiness, SQLite reachability and seeded data counts.
 
 ## Reviewer Notes
@@ -105,3 +107,4 @@ Use this path when walking a reviewer through the prototype:
 - The Docker frontend container writes runtime config from `LAR_FRONTEND_API_BASE_URL`, `LAR_FRONTEND_MOCK_API` and `LAR_FRONTEND_ENVIRONMENT_LABEL` when nginx starts.
 - Architecture and decision notes live in `docs/architecture.md` and `docs/decisions.md`.
 - CI and deployment packaging notes live in `docs/ci-deployment-notes.md`.
+- Automation/model-provider work is intentionally limited to a governance-ready backend contract. There are no external provider calls in this prototype.
