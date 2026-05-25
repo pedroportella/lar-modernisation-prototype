@@ -1,5 +1,5 @@
 import { AsyncPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { catchError, map, Observable, of, startWith, switchMap } from 'rxjs';
 import { TransformationApiService } from '@lar/services';
@@ -30,6 +30,8 @@ interface FeatureConfig {
     | 'listAutomationCandidates'
   >;
   columns: FeatureColumn[];
+  primaryKey: string;
+  detailTitle: string;
   statusKey?: string;
 }
 
@@ -48,6 +50,8 @@ const featureConfigs: Record<string, FeatureConfig> = {
     sourceLabel: '/api/payments/migration-readiness',
     load: 'listPaymentReadiness',
     statusKey: 'status',
+    primaryKey: 'area',
+    detailTitle: 'Readiness item',
     columns: [
       { key: 'area', label: 'Area' },
       { key: 'status', label: 'Status' },
@@ -63,6 +67,8 @@ const featureConfigs: Record<string, FeatureConfig> = {
     sourceLabel: '/api/warehouse/optimisation',
     load: 'listWarehouseSignals',
     statusKey: 'status',
+    primaryKey: 'signalName',
+    detailTitle: 'Signal detail',
     columns: [
       { key: 'signalName', label: 'Signal' },
       { key: 'currentValue', label: 'Value' },
@@ -78,6 +84,8 @@ const featureConfigs: Record<string, FeatureConfig> = {
     sourceLabel: '/api/hr/platform-uplift',
     load: 'listHrPlatformTasks',
     statusKey: 'status',
+    primaryKey: 'taskName',
+    detailTitle: 'Task detail',
     columns: [
       { key: 'taskName', label: 'Task' },
       { key: 'status', label: 'Status' },
@@ -92,6 +100,8 @@ const featureConfigs: Record<string, FeatureConfig> = {
     sourceLabel: '/api/insights/wayfinding',
     load: 'listInsightMetrics',
     statusKey: 'status',
+    primaryKey: 'metricName',
+    detailTitle: 'Metric detail',
     columns: [
       { key: 'metricName', label: 'Metric' },
       { key: 'value', label: 'Value' },
@@ -105,6 +115,8 @@ const featureConfigs: Record<string, FeatureConfig> = {
     summary: 'Candidates for automation or AI-assisted tooling with governance-aware next steps.',
     sourceLabel: '/api/automation/candidates',
     load: 'listAutomationCandidates',
+    primaryKey: 'workflowName',
+    detailTitle: 'Candidate detail',
     columns: [
       { key: 'workflowName', label: 'Workflow' },
       { key: 'valueScore', label: 'Value' },
@@ -133,6 +145,10 @@ export class FeatureSlicePageComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly transformationApi = inject(TransformationApiService);
 
+  protected readonly searchTerm = signal('');
+  protected readonly statusFilter = signal('all');
+  protected readonly selectedRecordId = signal<string | number | null>(null);
+
   protected readonly state$: Observable<FeatureState> = this.route.data.pipe(
     map((data) => featureConfigs[data['slice'] as string] ?? featureConfigs['payments']),
     switchMap((config) =>
@@ -147,6 +163,71 @@ export class FeatureSlicePageComponent {
       ),
     ),
   );
+
+  protected updateSearch(event: Event): void {
+    this.searchTerm.set((event.target as HTMLInputElement).value);
+  }
+
+  protected updateStatusFilter(event: Event): void {
+    this.statusFilter.set((event.target as HTMLSelectElement).value);
+  }
+
+  protected clearFilters(): void {
+    this.searchTerm.set('');
+    this.statusFilter.set('all');
+  }
+
+  protected selectRecord(record: FeatureRecord): void {
+    this.selectedRecordId.set(record['id']);
+  }
+
+  protected filteredRecords(records: FeatureRecord[], config: FeatureConfig): FeatureRecord[] {
+    const query = this.searchTerm().trim().toLowerCase();
+    const status = this.statusFilter();
+
+    return records.filter((record) => {
+      const matchesQuery =
+        !query ||
+        config.columns.some((column) =>
+          String(this.valueFor(record, column)).toLowerCase().includes(query),
+        );
+      const matchesStatus =
+        status === 'all' || !config.statusKey || String(record[config.statusKey]) === status;
+
+      return matchesQuery && matchesStatus;
+    });
+  }
+
+  protected statusOptions(records: FeatureRecord[], config: FeatureConfig): string[] {
+    if (!config.statusKey) return [];
+    const statusKey = config.statusKey;
+
+    return Array.from(new Set(records.map((record) => String(record[statusKey])))).sort();
+  }
+
+  protected attentionCount(records: FeatureRecord[], config: FeatureConfig): number {
+    if (!config.statusKey) return 0;
+    const statusKey = config.statusKey;
+
+    return records.filter((record) =>
+      ['AtRisk', 'Blocked'].includes(String(record[statusKey])),
+    ).length;
+  }
+
+  protected selectedRecord(records: FeatureRecord[]): FeatureRecord | null {
+    if (records.length === 0) return null;
+
+    const selectedId = this.selectedRecordId();
+    return records.find((record) => record['id'] === selectedId) ?? records[0];
+  }
+
+  protected recordLabel(record: FeatureRecord, config: FeatureConfig): string {
+    return String(record[config.primaryKey] ?? record['id'] ?? 'Record');
+  }
+
+  protected detailColumns(record: FeatureRecord, config: FeatureConfig): FeatureColumn[] {
+    return config.columns.filter((column) => record[column.key] !== undefined);
+  }
 
   protected valueFor(record: FeatureRecord, column: FeatureColumn): string | number {
     return record[column.key] ?? '';

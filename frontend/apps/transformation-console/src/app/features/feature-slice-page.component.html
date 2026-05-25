@@ -10,7 +10,14 @@
 
     <section class="summary" aria-label="Feature summary">
       <lar-summary-metric label="Records" [value]="state.records.length"></lar-summary-metric>
-      <lar-summary-metric label="Status field" [value]="state.config.statusKey ?? 'Not applicable'"></lar-summary-metric>
+      <lar-summary-metric
+        label="Visible"
+        [value]="filteredRecords(state.records, state.config).length"
+      ></lar-summary-metric>
+      <lar-summary-metric
+        label="Needs attention"
+        [value]="attentionCount(state.records, state.config)"
+      ></lar-summary-metric>
     </section>
 
     @if (state.status === 'loading') {
@@ -20,32 +27,92 @@
         Check the runtime API configuration or enable mock API mode for frontend-only delivery.
       </lar-page-alert>
     } @else {
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              @for (column of state.config.columns; track column.key) {
-                <th scope="col">{{ column.label }}</th>
+      <section class="filters" aria-label="Table filters">
+        <div class="field">
+          <label for="feature-search">Search</label>
+          <input
+            id="feature-search"
+            type="search"
+            [value]="searchTerm()"
+            placeholder="Filter records"
+            (input)="updateSearch($event)"
+          />
+        </div>
+
+        @if (state.config.statusKey) {
+          <div class="field">
+            <label for="feature-status">Status</label>
+            <select id="feature-status" [value]="statusFilter()" (change)="updateStatusFilter($event)">
+              <option value="all">All statuses</option>
+              @for (status of statusOptions(state.records, state.config); track status) {
+                <option [value]="status">{{ status }}</option>
               }
-            </tr>
-          </thead>
-          <tbody>
-            @for (record of state.records; track record['id']) {
-              <tr>
-                @for (column of state.config.columns; track column.key) {
-                  <td>
-                    @if (isStatusColumn(column, state.config)) {
-                      <lar-status-tag [status]="valueFor(record, column).toString()"></lar-status-tag>
-                    } @else {
-                      {{ valueFor(record, column) }}
+            </select>
+          </div>
+        }
+
+        <button type="button" (click)="clearFilters()">Clear filters</button>
+      </section>
+
+      @if (filteredRecords(state.records, state.config).length === 0) {
+        <lar-page-alert tone="info" title="No matching records">
+          Clear filters or adjust the search term to broaden the current operational view.
+        </lar-page-alert>
+      } @else {
+        <section class="data-layout" aria-label="Filtered records and detail">
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  @for (column of state.config.columns; track column.key) {
+                    <th scope="col">{{ column.label }}</th>
+                  }
+                </tr>
+              </thead>
+              <tbody>
+                @for (record of filteredRecords(state.records, state.config); track record['id']) {
+                  <tr [class.selected]="selectedRecord(filteredRecords(state.records, state.config))?.['id'] === record['id']">
+                    @for (column of state.config.columns; track column.key) {
+                      <td>
+                        @if (column.key === state.config.primaryKey) {
+                          <button type="button" class="record-link" (click)="selectRecord(record)">
+                            {{ valueFor(record, column) }}
+                          </button>
+                        } @else if (isStatusColumn(column, state.config)) {
+                          <lar-status-tag [status]="valueFor(record, column).toString()"></lar-status-tag>
+                        } @else {
+                          {{ valueFor(record, column) }}
+                        }
+                      </td>
                     }
-                  </td>
+                  </tr>
                 }
-              </tr>
-            }
-          </tbody>
-        </table>
-      </div>
+              </tbody>
+            </table>
+          </div>
+
+          @if (selectedRecord(filteredRecords(state.records, state.config)); as record) {
+            <aside class="detail-panel" aria-label="Selected record detail">
+              <span>{{ state.config.detailTitle }}</span>
+              <h2>{{ recordLabel(record, state.config) }}</h2>
+              <dl>
+                @for (column of detailColumns(record, state.config); track column.key) {
+                  <div>
+                    <dt>{{ column.label }}</dt>
+                    <dd>
+                      @if (isStatusColumn(column, state.config)) {
+                        <lar-status-tag [status]="valueFor(record, column).toString()"></lar-status-tag>
+                      } @else {
+                        {{ valueFor(record, column) }}
+                      }
+                    </dd>
+                  </div>
+                }
+              </dl>
+            </aside>
+          }
+        </section>
+      }
     }
   </lar-page-frame>
 }

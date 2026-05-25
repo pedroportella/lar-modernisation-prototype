@@ -56,8 +56,29 @@ test.describe('feature slices', () => {
 
       await expect(page.getByRole('heading', { name: heading })).toBeVisible();
       await expect(page.locator('tbody tr')).toHaveCount(recordCount);
-      await expect(page.getByText(expectedRecord)).toBeVisible();
+      await expect(page.getByRole('button', { name: expectedRecord })).toBeVisible();
       await expect(page.getByText('Unable to reach the backend API.')).toBeHidden();
     });
   }
+
+  test('filters feature records and updates the detail panel', async ({ page }) => {
+    await page.goto('/payments');
+
+    await expect(page.getByRole('heading', { name: 'Migration Readiness' })).toBeVisible();
+    await expect(page.locator('tbody tr')).toHaveCount(mockPaymentReadiness.length);
+
+    await page.getByLabel('Status').selectOption('AtRisk');
+    await expect(page.locator('tbody tr')).toHaveCount(1);
+    await expect(page.getByRole('button', { name: 'Token migration' })).toBeVisible();
+    await expect(page.getByLabel('Selected record detail')).toContainText('Provider cutover sequencing');
+
+    await page.getByLabel('Search').fill('settlement');
+    await expect(page.getByText('No matching records')).toBeVisible();
+
+    await page.getByRole('button', { name: 'Clear filters' }).click();
+    await expect(page.locator('tbody tr')).toHaveCount(mockPaymentReadiness.length);
+
+    await page.getByRole('button', { name: 'Settlement reporting' }).click();
+    await expect(page.getByLabel('Selected record detail')).toContainText('Finance reconciliation timing');
+  });
 });
