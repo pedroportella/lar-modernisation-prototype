@@ -8,6 +8,7 @@ public static class ModernisationSeedData
     public static async Task EnsureSeededAsync(ModernisationDbContext dbContext, CancellationToken cancellationToken = default)
     {
         await dbContext.Database.EnsureCreatedAsync(cancellationToken);
+        await EnsureWorkflowReviewSchemaAsync(dbContext, cancellationToken);
 
         if (await dbContext.Workstreams.AnyAsync(cancellationToken))
         {
@@ -176,5 +177,32 @@ public static class ModernisationSeedData
             });
 
         await dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    private static async Task EnsureWorkflowReviewSchemaAsync(
+        ModernisationDbContext dbContext,
+        CancellationToken cancellationToken)
+    {
+        await dbContext.Database.ExecuteSqlRawAsync(
+            """
+            CREATE TABLE IF NOT EXISTS "WorkflowReviews" (
+                "Id" INTEGER NOT NULL CONSTRAINT "PK_WorkflowReviews" PRIMARY KEY AUTOINCREMENT,
+                "Slice" TEXT NOT NULL,
+                "RecordId" INTEGER NOT NULL,
+                "Status" TEXT NOT NULL,
+                "Action" TEXT NOT NULL,
+                "Note" TEXT NOT NULL,
+                "ReviewedBy" TEXT NOT NULL,
+                "ReviewedAtUtc" TEXT NOT NULL
+            );
+            """,
+            cancellationToken);
+
+        await dbContext.Database.ExecuteSqlRawAsync(
+            """
+            CREATE INDEX IF NOT EXISTS "IX_WorkflowReviews_Slice_RecordId_Id"
+            ON "WorkflowReviews" ("Slice", "RecordId", "Id");
+            """,
+            cancellationToken);
     }
 }

@@ -107,3 +107,21 @@ export interface RecommendedAction {
   status: string;
   nextAction: string;
 }
+
+export interface WorkflowReview {
+  id: number;
+  slice: string;
+  recordId: number;
+  status: string;
+  action: string;
+  note: string;
+  reviewedBy: string;
+  reviewedAtUtc: string;
+}
+
+export interface WorkflowReviewRequest {
+  status: string;
+  action: string;
+  note: string;
+  reviewedBy: string;
+}

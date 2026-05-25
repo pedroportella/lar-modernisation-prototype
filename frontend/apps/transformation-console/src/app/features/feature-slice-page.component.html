@@ -119,7 +119,7 @@
                 <div class="workflow-heading">
                   <span>Workflow update</span>
                   @if (hasWorkflowReview(record, state.config)) {
-                    <strong>Local review applied</strong>
+                    <strong>Persisted review applied</strong>
                   }
                 </div>
 
@@ -164,7 +164,7 @@
                 } @else if (workflowSaveState() === 'saving') {
                   <p class="workflow-state" role="status">Saving review...</p>
                 } @else if (workflowSaveState() === 'saved') {
-                  <p class="workflow-state success" role="status">Review applied to this session.</p>
+                  <p class="workflow-state success" role="status">Review saved to backend.</p>
                 } @else if (workflowSaveState() === 'error') {
                   <p class="workflow-state error" role="alert">{{ workflowError() }}</p>
                 }

@@ -52,7 +52,7 @@ describe(FeatureSlicePageComponent.name, () => {
     expect(fixture.nativeElement.textContent).toContain('Enter the reviewer or role.');
   });
 
-  it('applies a saved review to the selected record in local state', async () => {
+  it('applies a saved review to the selected record after the API responds', async () => {
     const fixture = TestBed.createComponent(FeatureSlicePageComponent);
     fixture.detectChanges();
     await fixture.whenStable();
@@ -77,10 +77,10 @@ describe(FeatureSlicePageComponent.name, () => {
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('Saving review...');
 
-    await new Promise((resolve) => setTimeout(resolve, 360));
+    await fixture.whenStable();
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.textContent).toContain('Review applied to this session.');
+    expect(fixture.nativeElement.textContent).toContain('Review saved to backend.');
     expect(fixture.nativeElement.textContent).toContain('Escalate cutover dependency');
     expect(fixture.nativeElement.textContent).toContain('Blocked');
   });

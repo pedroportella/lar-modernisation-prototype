@@ -1,6 +1,7 @@
 using LargeRetailer.Modernisation.Application.Features;
 using LargeRetailer.Modernisation.Application.Readiness;
 using LargeRetailer.Modernisation.Application.Workstreams;
+using LargeRetailer.Modernisation.Application.WorkflowReviews;
 using LargeRetailer.Modernisation.Infrastructure;
 using LargeRetailer.Modernisation.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -11,6 +12,7 @@ builder.Services.AddOpenApi();
 builder.Services.AddScoped<IFeatureSliceQueryService, FeatureSliceQueryService>();
 builder.Services.AddScoped<IProgramReadinessQueryService, ProgramReadinessQueryService>();
 builder.Services.AddScoped<IWorkstreamQueryService, WorkstreamQueryService>();
+builder.Services.AddScoped<IWorkflowReviewService, WorkflowReviewService>();
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddCors(options =>
 {
@@ -142,6 +144,33 @@ app.MapGet("/api/automation/candidates", async (
         CancellationToken cancellationToken) =>
     Results.Ok(await featureSliceQueryService.ListAutomationCandidatesAsync(cancellationToken)))
     .WithName("GetAutomationCandidates");
+
+app.MapGet("/api/workflow-reviews/{slice}/{recordId:int}", async (
+        string slice,
+        int recordId,
+        IWorkflowReviewService workflowReviewService,
+        CancellationToken cancellationToken) =>
+    {
+        var review = await workflowReviewService.GetLatestAsync(slice, recordId, cancellationToken);
+
+        return review is null ? Results.NotFound() : Results.Ok(review);
+    })
+    .WithName("GetLatestWorkflowReview");
+
+app.MapPost("/api/workflow-reviews/{slice}/{recordId:int}", async (
+        string slice,
+        int recordId,
+        WorkflowReviewRequest request,
+        IWorkflowReviewService workflowReviewService,
+        CancellationToken cancellationToken) =>
+    {
+        var result = await workflowReviewService.CreateAsync(slice, recordId, request, cancellationToken);
+
+        return result.IsValid
+            ? Results.Created($"/api/workflow-reviews/{slice}/{recordId}", result.Review)
+            : Results.ValidationProblem(result.Errors);
+    })
+    .WithName("CreateWorkflowReview");
 
 app.Run();
 

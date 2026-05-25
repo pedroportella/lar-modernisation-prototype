@@ -12,6 +12,8 @@ import {
   WarehouseSignal,
   Workstream,
   WorkstreamDetail,
+  WorkflowReview,
+  WorkflowReviewRequest,
 } from './workstream.models';
 
 @Injectable({ providedIn: 'root' })
@@ -55,5 +57,22 @@ export class TransformationApiService {
 
   getProgramReadiness(): Observable<ProgramReadiness> {
     return this.http.get<ProgramReadiness>(`${this.apiBaseUrl}/api/program/readiness`);
+  }
+
+  getWorkflowReview(slice: string, recordId: string | number): Observable<WorkflowReview> {
+    return this.http.get<WorkflowReview>(
+      `${this.apiBaseUrl}/api/workflow-reviews/${encodeURIComponent(slice)}/${recordId}`,
+    );
+  }
+
+  saveWorkflowReview(
+    slice: string,
+    recordId: string | number,
+    request: WorkflowReviewRequest,
+  ): Observable<WorkflowReview> {
+    return this.http.post<WorkflowReview>(
+      `${this.apiBaseUrl}/api/workflow-reviews/${encodeURIComponent(slice)}/${recordId}`,
+      request,
+    );
   }
 }

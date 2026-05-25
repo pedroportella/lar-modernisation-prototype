@@ -152,6 +152,79 @@ public sealed class WorkstreamApiTests
         Assert.Equal(expectedCount, records.Length);
     }
 
+    [Fact]
+    public async Task Workflow_review_endpoint_persists_and_returns_latest_review()
+    {
+        var databasePath = Path.Combine(Path.GetTempPath(), $"lar-modernisation-{Guid.NewGuid():N}.db");
+
+        await using var application = new WebApplicationFactory<Program>()
+            .WithWebHostBuilder(builder =>
+            {
+                builder.ConfigureAppConfiguration((_, configurationBuilder) =>
+                {
+                    configurationBuilder.AddInMemoryCollection(new Dictionary<string, string?>
+                    {
+                        ["ConnectionStrings:ModernisationDb"] = $"Data Source={databasePath}"
+                    });
+                });
+            });
+
+        var client = application.CreateClient();
+
+        var emptyResponse = await client.GetAsync(
+            "/api/workflow-reviews/payments/1",
+            CancellationToken.None);
+        Assert.Equal(HttpStatusCode.NotFound, emptyResponse.StatusCode);
+
+        var saveResponse = await client.PostAsJsonAsync(
+            "/api/workflow-reviews/payments/1",
+            new WorkflowReviewRequest(
+                "Blocked",
+                "Escalate cutover dependency",
+                "Reviewed with release lead and dependency owner.",
+                "Delivery lead"),
+            CancellationToken.None);
+
+        Assert.Equal(HttpStatusCode.Created, saveResponse.StatusCode);
+
+        var review = await client.GetFromJsonAsync<WorkflowReviewResponse>(
+            "/api/workflow-reviews/payments/1",
+            CancellationToken.None);
+
+        Assert.NotNull(review);
+        Assert.Equal("payments", review.Slice);
+        Assert.Equal(1, review.RecordId);
+        Assert.Equal("Blocked", review.Status);
+        Assert.Equal("Escalate cutover dependency", review.Action);
+    }
+
+    [Fact]
+    public async Task Workflow_review_endpoint_rejects_invalid_payload()
+    {
+        var databasePath = Path.Combine(Path.GetTempPath(), $"lar-modernisation-{Guid.NewGuid():N}.db");
+
+        await using var application = new WebApplicationFactory<Program>()
+            .WithWebHostBuilder(builder =>
+            {
+                builder.ConfigureAppConfiguration((_, configurationBuilder) =>
+                {
+                    configurationBuilder.AddInMemoryCollection(new Dictionary<string, string?>
+                    {
+                        ["ConnectionStrings:ModernisationDb"] = $"Data Source={databasePath}"
+                    });
+                });
+            });
+
+        var client = application.CreateClient();
+
+        var response = await client.PostAsJsonAsync(
+            "/api/workflow-reviews/unknown/1",
+            new WorkflowReviewRequest("NotReal", "short", "tiny", ""),
+            CancellationToken.None);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
     private sealed record WorkstreamResponse(
         string Id,
         string Name,
@@ -194,4 +267,20 @@ public sealed class WorkstreamApiTests
         string Owner,
         string Status,
         string NextAction);
+
+    private sealed record WorkflowReviewRequest(
+        string Status,
+        string Action,
+        string Note,
+        string ReviewedBy);
+
+    private sealed record WorkflowReviewResponse(
+        int Id,
+        string Slice,
+        int RecordId,
+        string Status,
+        string Action,
+        string Note,
+        string ReviewedBy,
+        DateTimeOffset ReviewedAtUtc);
 }

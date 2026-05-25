@@ -47,7 +47,7 @@ async function openPaymentsWorkflow(page: Page) {
 }
 
 test.describe('payments status review workflow', () => {
-  test('validates, saves and applies a local status review', async ({ page }) => {
+  test('validates, saves and applies a persisted status review', async ({ page }) => {
     await openPaymentsWorkflow(page);
 
     await page.getByLabel('Review note').fill('short');
@@ -67,7 +67,7 @@ test.describe('payments status review workflow', () => {
 
     await expect(page.getByRole('status')).toContainText('Saving review...');
     await expect(page.getByRole('button', { name: 'Save review' })).toBeDisabled();
-    await expect(page.getByText('Review applied to this session.')).toBeVisible();
+    await expect(page.getByText('Review saved to backend.')).toBeVisible();
     await expect(page.getByLabel('Selected record detail')).toContainText(
       'Escalate cutover dependency',
     );

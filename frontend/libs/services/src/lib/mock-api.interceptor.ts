@@ -1,6 +1,6 @@
-import { HttpInterceptorFn, HttpResponse } from '@angular/common/http';
+import { HttpErrorResponse, HttpInterceptorFn, HttpResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
-import { of } from 'rxjs';
+import { delay, of, throwError } from 'rxjs';
 import { LAR_RUNTIME_CONFIG } from './api-config';
 import {
   mockAutomationCandidates,
@@ -13,6 +13,7 @@ import {
   mockWorkstreamDetails,
   mockWorkstreams,
 } from './mock-api.fixtures';
+import { WorkflowReview, WorkflowReviewRequest } from './workstream.models';
 
 const mockRoutes: Record<string, unknown> = {
   '/api/workstreams': mockWorkstreams,
@@ -25,29 +26,101 @@ const mockRoutes: Record<string, unknown> = {
   '/api/program/readiness': mockProgramReadiness,
 };
 
+const workflowReviews = new Map<string, WorkflowReview>();
+let workflowReviewId = 1;
+
 export const larMockApiInterceptor: HttpInterceptorFn = (request, next) => {
   if (!inject(LAR_RUNTIME_CONFIG).mockApi) {
     return next(request);
   }
 
   const path = apiPathFromUrl(request.url);
-  const body = mockResponseForPath(path);
+  const response = mockResponseForRequest(request.method, path, request.body);
 
-  if (body === undefined) {
+  if (response === undefined) {
     return next(request);
   }
 
-  return of(new HttpResponse({ body: cloneMock(body), status: 200 }));
+  if (response instanceof HttpErrorResponse) {
+    return throwError(() => response);
+  }
+
+  const httpResponse = new HttpResponse({ body: cloneMock(response.body), status: response.status });
+
+  return request.method === 'POST' && path.startsWith('/api/workflow-reviews/')
+    ? of(httpResponse).pipe(delay(150))
+    : of(httpResponse);
 };
 
-function mockResponseForPath(path: string): unknown {
+function mockResponseForRequest(
+  method: string,
+  path: string,
+  body: unknown,
+): { body: unknown; status: number } | HttpErrorResponse | undefined {
+  const workflowReviewMatch = path.match(/^\/api\/workflow-reviews\/([^/]+)\/([^/]+)$/);
+
+  if (workflowReviewMatch) {
+    return mockWorkflowReviewResponse(method, workflowReviewMatch[1], workflowReviewMatch[2], body);
+  }
+
+  if (method !== 'GET') {
+    return undefined;
+  }
+
   const workstreamDetailMatch = path.match(/^\/api\/workstreams\/([^/]+)$/);
 
   if (workstreamDetailMatch) {
-    return mockWorkstreamDetails.find((workstream) => workstream.id === workstreamDetailMatch[1]);
+    return {
+      body: mockWorkstreamDetails.find((workstream) => workstream.id === workstreamDetailMatch[1]),
+      status: 200,
+    };
   }
 
-  return mockRoutes[path];
+  const routeBody = mockRoutes[path];
+
+  return routeBody === undefined ? undefined : { body: routeBody, status: 200 };
+}
+
+function mockWorkflowReviewResponse(
+  method: string,
+  slice: string,
+  recordId: string,
+  body: unknown,
+): { body: unknown; status: number } | HttpErrorResponse {
+  const key = `${slice}:${recordId}`;
+
+  if (method === 'GET') {
+    const review = workflowReviews.get(key);
+
+    return review
+      ? { body: review, status: 200 }
+      : new HttpErrorResponse({ status: 404, statusText: 'Not Found' });
+  }
+
+  if (method !== 'POST') {
+    return new HttpErrorResponse({ status: 405, statusText: 'Method Not Allowed' });
+  }
+
+  const request = body as WorkflowReviewRequest;
+
+  if (request.note.toLowerCase().includes('api failure')) {
+    return new HttpErrorResponse({ status: 500, statusText: 'Mock API failure' });
+  }
+
+  const review: WorkflowReview = {
+    id: workflowReviewId++,
+    slice,
+    recordId: Number(recordId),
+    status: request.status,
+    action: request.action,
+    note: request.note,
+    reviewedBy: request.reviewedBy,
+    reviewedAtUtc: new Date().toISOString(),
+  };
+
+  workflowReviews.set(key, review);
+
+  return { body: review, status: 201 };
 }
 
 function apiPathFromUrl(url: string): string {

@@ -41,6 +41,33 @@ describe('mock API mode', () => {
     );
   });
 
+  it('persists workflow reviews in mock mode', async () => {
+    const service = TestBed.inject(TransformationApiService);
+
+    await expect(
+      firstValueFrom(
+        service.saveWorkflowReview('payments', 1, {
+          status: 'Blocked',
+          action: 'Escalate cutover dependency',
+          note: 'Reviewed with release lead and dependency owner.',
+          reviewedBy: 'Delivery lead',
+        }),
+      ),
+    ).resolves.toMatchObject({
+      action: 'Escalate cutover dependency',
+      recordId: 1,
+      slice: 'payments',
+      status: 'Blocked',
+    });
+
+    await expect(firstValueFrom(service.getWorkflowReview('payments', 1))).resolves.toMatchObject({
+      action: 'Escalate cutover dependency',
+      recordId: 1,
+      slice: 'payments',
+      status: 'Blocked',
+    });
+  });
+
   it('normalises runtime config for mock mode', () => {
     expect(TestBed.inject(LAR_RUNTIME_CONFIG)).toEqual({
       apiBaseUrl: 'mock',
