@@ -6,13 +6,15 @@
   metaLabel="Decision posture"
   metaValue="Read-only review"
 >
-
   @if (state$ | async; as state) {
     @if (state.status === 'loading') {
-      <lar-loading-state message="Loading readiness posture..."></lar-loading-state>
+      <lar-loading-state
+        message="Loading readiness posture..."
+      ></lar-loading-state>
     } @else if (state.status === 'error') {
       <lar-page-alert tone="error" title="Unable to reach the backend API">
-        Check the runtime API configuration or enable mock API mode for frontend-only delivery.
+        Check the runtime API configuration or enable mock API mode for
+        frontend-only delivery.
       </lar-page-alert>
     } @else {
       <section class="hero-metrics" aria-label="Readiness summary">
@@ -23,7 +25,9 @@
         <div>
           <span>Overall status</span>
           <strong>
-            <lar-status-tag [status]="state.readiness.overallStatus"></lar-status-tag>
+            <lar-status-tag
+              [status]="state.readiness.overallStatus"
+            ></lar-status-tag>
           </strong>
         </div>
         <div class="summary">
@@ -48,7 +52,10 @@
           title="Recommended Next Actions"
           summary="Prioritised next moves generated from current readiness posture."
         ></lar-section-header>
-        @for (action of state.readiness.recommendedActions; track action.workstreamId + action.initiative) {
+        @for (
+          action of state.readiness.recommendedActions;
+          track action.workstreamId + action.initiative
+        ) {
           <article>
             <div>
               <span>{{ action.workstreamName }}</span>

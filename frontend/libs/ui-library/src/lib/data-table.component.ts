@@ -5,7 +5,10 @@ export interface DataTableColumn {
   label: string;
 }
 
-export type DataTableRecord = Record<string, string | number | null | undefined>;
+export type DataTableRecord = Record<
+  string,
+  string | number | null | undefined
+>;
 
 @Component({
   selector: 'lar-data-table',

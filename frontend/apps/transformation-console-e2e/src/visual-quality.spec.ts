@@ -25,7 +25,10 @@ const viewports: ViewportSize[] = [
 async function expectNoPageOverflow(page: Page) {
   const overflow = await page.evaluate(() => {
     const viewportWidth = document.documentElement.clientWidth;
-    const pageWidth = Math.max(document.body.scrollWidth, document.documentElement.scrollWidth);
+    const pageWidth = Math.max(
+      document.body.scrollWidth,
+      document.documentElement.scrollWidth,
+    );
     const offenders = Array.from(
       document.querySelectorAll(
         [
@@ -74,13 +77,19 @@ async function expectNoPageOverflow(page: Page) {
     };
   });
 
-  expect(overflow.pageWidth, `Page width should fit viewport: ${JSON.stringify(overflow)}`).toBeLessThanOrEqual(
-    overflow.viewportWidth + 1,
-  );
+  expect(
+    overflow.pageWidth,
+    `Page width should fit viewport: ${JSON.stringify(overflow)}`,
+  ).toBeLessThanOrEqual(overflow.viewportWidth + 1);
   expect(overflow.offenders).toEqual([]);
 }
 
-async function captureRoute(page: Page, testInfo: TestInfo, routeName: string, viewport: ViewportSize) {
+async function captureRoute(
+  page: Page,
+  testInfo: TestInfo,
+  routeName: string,
+  viewport: ViewportSize,
+) {
   await page.screenshot({
     fullPage: true,
     path: testInfo.outputPath(`${routeName}-${viewport.name}.png`),
@@ -89,34 +98,59 @@ async function captureRoute(page: Page, testInfo: TestInfo, routeName: string, v
 
 test.describe('visual quality gates', () => {
   for (const viewport of viewports) {
-    test(`keeps core routes inside the ${viewport.name} viewport`, async ({ page }) => {
-      await page.setViewportSize({ height: viewport.height, width: viewport.width });
+    test(`keeps core routes inside the ${viewport.name} viewport`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({
+        height: viewport.height,
+        width: viewport.width,
+      });
 
       for (const [, route, heading] of coreRoutes) {
         await page.goto(route);
-        await expect(page.getByRole('heading', { name: heading })).toBeVisible();
+        await expect(
+          page.getByRole('heading', { name: heading }),
+        ).toBeVisible();
         await expectNoPageOverflow(page);
       }
     });
   }
 
-  test('captures dashboard shell at desktop and mobile sizes', async ({ page }, testInfo) => {
+  test('captures dashboard shell at desktop and mobile sizes', async ({
+    page,
+  }, testInfo) => {
     for (const viewport of viewports) {
-      await page.setViewportSize({ height: viewport.height, width: viewport.width });
+      await page.setViewportSize({
+        height: viewport.height,
+        width: viewport.width,
+      });
       await page.goto('/');
-      await expect(page.getByRole('link', { name: 'Dashboard home' })).toBeVisible();
-      await expect(page.getByRole('navigation', { name: 'Workspace' })).toBeVisible();
-      await expect(page.getByRole('heading', { name: 'Transformation Delivery Console' })).toBeVisible();
+      await expect(
+        page.getByRole('link', { name: 'Dashboard home' }),
+      ).toBeVisible();
+      await expect(
+        page.getByRole('navigation', { name: 'Workspace' }),
+      ).toBeVisible();
+      await expect(
+        page.getByRole('heading', { name: 'Transformation Delivery Console' }),
+      ).toBeVisible();
       await expectNoPageOverflow(page);
       await captureRoute(page, testInfo, 'dashboard-shell', viewport);
     }
   });
 
-  test('captures readiness route at desktop and mobile sizes', async ({ page }, testInfo) => {
+  test('captures readiness route at desktop and mobile sizes', async ({
+    page,
+  }, testInfo) => {
     for (const viewport of viewports) {
-      await page.setViewportSize({ height: viewport.height, width: viewport.width });
+      await page.setViewportSize({
+        height: viewport.height,
+        width: viewport.width,
+      });
       await page.goto('/readiness');
-      await expect(page.getByRole('heading', { name: 'Delivery Readiness' })).toBeVisible();
+      await expect(
+        page.getByRole('heading', { name: 'Delivery Readiness' }),
+      ).toBeVisible();
       await expect(page.getByLabel('Readiness summary')).toBeVisible();
       await expect(page.getByLabel('Recommended next actions')).toBeVisible();
       await expectNoPageOverflow(page);

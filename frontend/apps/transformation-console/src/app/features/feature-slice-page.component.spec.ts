@@ -10,6 +10,7 @@ describe(FeatureSlicePageComponent.name, () => {
     window.larRuntimeConfig = {
       apiBaseUrl: 'mock',
       mockApi: true,
+      role: 'DeliveryLead',
     };
 
     await TestBed.configureTestingModule({
@@ -37,9 +38,15 @@ describe(FeatureSlicePageComponent.name, () => {
     await fixture.whenStable();
     fixture.detectChanges();
 
-    const form = fixture.nativeElement.querySelector('.workflow-form') as HTMLFormElement;
-    const note = fixture.nativeElement.querySelector('#workflow-note') as HTMLTextAreaElement;
-    const reviewer = fixture.nativeElement.querySelector('#workflow-reviewed-by') as HTMLInputElement;
+    const form = fixture.nativeElement.querySelector(
+      '.workflow-form',
+    ) as HTMLFormElement;
+    const note = fixture.nativeElement.querySelector(
+      '#workflow-note',
+    ) as HTMLTextAreaElement;
+    const reviewer = fixture.nativeElement.querySelector(
+      '#workflow-reviewed-by',
+    ) as HTMLInputElement;
 
     note.value = 'short';
     note.dispatchEvent(new Event('input'));
@@ -48,8 +55,12 @@ describe(FeatureSlicePageComponent.name, () => {
     form.dispatchEvent(new Event('submit'));
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.textContent).toContain('Add a note of at least 12 characters.');
-    expect(fixture.nativeElement.textContent).toContain('Enter the reviewer or role.');
+    expect(fixture.nativeElement.textContent).toContain(
+      'Add a note of at least 12 characters.',
+    );
+    expect(fixture.nativeElement.textContent).toContain(
+      'Enter the reviewer or role.',
+    );
   });
 
   it('applies a saved review to the selected record after the API responds', async () => {
@@ -58,11 +69,21 @@ describe(FeatureSlicePageComponent.name, () => {
     await fixture.whenStable();
     fixture.detectChanges();
 
-    const status = fixture.nativeElement.querySelector('#workflow-status') as HTMLSelectElement;
-    const action = fixture.nativeElement.querySelector('#workflow-action') as HTMLInputElement;
-    const note = fixture.nativeElement.querySelector('#workflow-note') as HTMLTextAreaElement;
-    const reviewer = fixture.nativeElement.querySelector('#workflow-reviewed-by') as HTMLInputElement;
-    const form = fixture.nativeElement.querySelector('.workflow-form') as HTMLFormElement;
+    const status = fixture.nativeElement.querySelector(
+      '#workflow-status',
+    ) as HTMLSelectElement;
+    const action = fixture.nativeElement.querySelector(
+      '#workflow-action',
+    ) as HTMLInputElement;
+    const note = fixture.nativeElement.querySelector(
+      '#workflow-note',
+    ) as HTMLTextAreaElement;
+    const reviewer = fixture.nativeElement.querySelector(
+      '#workflow-reviewed-by',
+    ) as HTMLInputElement;
+    const form = fixture.nativeElement.querySelector(
+      '.workflow-form',
+    ) as HTMLFormElement;
 
     status.value = 'Blocked';
     status.dispatchEvent(new Event('change'));
@@ -80,8 +101,42 @@ describe(FeatureSlicePageComponent.name, () => {
     await fixture.whenStable();
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.textContent).toContain('Review saved to backend.');
-    expect(fixture.nativeElement.textContent).toContain('Escalate cutover dependency');
+    expect(fixture.nativeElement.textContent).toContain(
+      'Review saved to backend.',
+    );
+    expect(fixture.nativeElement.textContent).toContain(
+      'Escalate cutover dependency',
+    );
     expect(fixture.nativeElement.textContent).toContain('Blocked');
+  });
+
+  it('does not offer save controls for viewer role', async () => {
+    TestBed.resetTestingModule();
+    window.larRuntimeConfig = {
+      apiBaseUrl: 'mock',
+      mockApi: true,
+      role: 'Viewer',
+    };
+
+    await TestBed.configureTestingModule({
+      imports: [FeatureSlicePageComponent],
+      providers: [
+        provideHttpClient(withInterceptors([larMockApiInterceptor])),
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            data: of({ slice: 'payments' }),
+          },
+        },
+      ],
+    }).compileComponents();
+
+    const fixture = TestBed.createComponent(FeatureSlicePageComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Read-only role');
+    expect(fixture.nativeElement.textContent).not.toContain('Save review');
   });
 });

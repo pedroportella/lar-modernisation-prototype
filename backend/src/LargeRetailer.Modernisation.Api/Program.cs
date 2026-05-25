@@ -161,9 +161,17 @@ app.MapPost("/api/workflow-reviews/{slice}/{recordId:int}", async (
         string slice,
         int recordId,
         WorkflowReviewRequest request,
+        HttpContext httpContext,
         IWorkflowReviewService workflowReviewService,
         CancellationToken cancellationToken) =>
     {
+        if (!DemoAuthorisation.CanWriteWorkflowReviews(httpContext))
+        {
+            return Results.Problem(
+                "Workflow review writes require the DeliveryLead or Admin demo role.",
+                statusCode: StatusCodes.Status403Forbidden);
+        }
+
         var result = await workflowReviewService.CreateAsync(slice, recordId, request, cancellationToken);
 
         return result.IsValid

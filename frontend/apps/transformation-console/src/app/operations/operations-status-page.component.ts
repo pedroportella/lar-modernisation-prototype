@@ -1,7 +1,11 @@
 import { AsyncPipe, DatePipe, TitleCasePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { catchError, map, of, startWith } from 'rxjs';
-import { OperationalDatasetCounts, OperationalStatus, TransformationApiService } from '@lar/services';
+import {
+  OperationalDatasetCounts,
+  OperationalStatus,
+  TransformationApiService,
+} from '@lar/services';
 import {
   LoadingStateComponent,
   PageAlertComponent,
@@ -11,7 +15,11 @@ import {
 
 type OperationsState =
   | { status: 'loading'; statusReport: null; countItems: CountItem[] }
-  | { status: 'ready'; statusReport: OperationalStatus; countItems: CountItem[] }
+  | {
+      status: 'ready';
+      statusReport: OperationalStatus;
+      countItems: CountItem[];
+    }
   | { status: 'error'; statusReport: null; countItems: CountItem[] };
 
 interface CountItem {
@@ -37,17 +45,27 @@ interface CountItem {
 export class OperationsStatusPageComponent {
   private readonly transformationApi = inject(TransformationApiService);
 
-  protected readonly state$ = this.transformationApi.getOperationalStatus().pipe(
-    map((statusReport) => ({
-      status: 'ready' as const,
-      statusReport,
-      countItems: toCountItems(statusReport.counts),
-    })),
-    startWith({ status: 'loading', statusReport: null, countItems: [] } satisfies OperationsState),
-    catchError(() =>
-      of({ status: 'error', statusReport: null, countItems: [] } satisfies OperationsState),
-    ),
-  );
+  protected readonly state$ = this.transformationApi
+    .getOperationalStatus()
+    .pipe(
+      map((statusReport) => ({
+        status: 'ready' as const,
+        statusReport,
+        countItems: toCountItems(statusReport.counts),
+      })),
+      startWith({
+        status: 'loading',
+        statusReport: null,
+        countItems: [],
+      } satisfies OperationsState),
+      catchError(() =>
+        of({
+          status: 'error',
+          statusReport: null,
+          countItems: [],
+        } satisfies OperationsState),
+      ),
+    );
 }
 
 function toCountItems(counts: OperationalDatasetCounts): CountItem[] {

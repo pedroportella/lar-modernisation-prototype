@@ -1,0 +1,11 @@
+node_modules
+dist
+out-tsc
+coverage
+playwright-report
+test-results
+bin
+obj
+backend/**/*.sln
+pnpm-lock.yaml
+backend/src/LargeRetailer.Modernisation.Api/Properties/launchSettings.json

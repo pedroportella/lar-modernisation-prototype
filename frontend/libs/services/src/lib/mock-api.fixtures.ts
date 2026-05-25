@@ -15,35 +15,40 @@ export const mockWorkstreams: Workstream[] = [
     id: 'payments',
     name: 'Payments Migration',
     status: 'AtRisk',
-    summary: 'Move payments onto the modern provider boundary with controlled cutover risk.',
+    summary:
+      'Move payments onto the modern provider boundary with controlled cutover risk.',
     priority: 1,
   },
   {
     id: 'warehouse',
     name: 'Warehouse Optimisation',
     status: 'OnTrack',
-    summary: 'Reduce dispatch friction across fulfilment centres using operational signals.',
+    summary:
+      'Reduce dispatch friction across fulfilment centres using operational signals.',
     priority: 2,
   },
   {
     id: 'hr-platform',
     name: 'HR Platform Uplift',
     status: 'Blocked',
-    summary: 'Track people-platform uplift tasks, process risk and integration readiness.',
+    summary:
+      'Track people-platform uplift tasks, process risk and integration readiness.',
     priority: 3,
   },
   {
     id: 'insights',
     name: 'Wayfinding Insights',
     status: 'Monitoring',
-    summary: 'Surface the right decision signal for leadership and delivery teams.',
+    summary:
+      'Surface the right decision signal for leadership and delivery teams.',
     priority: 4,
   },
   {
     id: 'automation',
     name: 'Automation Opportunity Queue',
     status: 'Monitoring',
-    summary: 'Prioritise automation candidates with value, effort and governance context.',
+    summary:
+      'Prioritise automation candidates with value, effort and governance context.',
     priority: 5,
   },
 ];
@@ -64,7 +69,8 @@ export const mockWorkstreamDetails: WorkstreamDetail[] = [
         name: 'Provider settlement reconciliation',
         status: 'Monitoring',
         owner: 'Payments lead',
-        nextAction: 'Compare settlement reports against current finance extracts.',
+        nextAction:
+          'Compare settlement reports against current finance extracts.',
       },
     ],
   },
@@ -76,7 +82,8 @@ export const mockWorkstreamDetails: WorkstreamDetail[] = [
         name: 'Pick exception reduction',
         status: 'OnTrack',
         owner: 'Fulfilment lead',
-        nextAction: 'Target bin-location corrections for top exception categories.',
+        nextAction:
+          'Target bin-location corrections for top exception categories.',
       },
     ],
   },
@@ -88,7 +95,8 @@ export const mockWorkstreamDetails: WorkstreamDetail[] = [
         name: 'Role and entitlement mapping',
         status: 'Blocked',
         owner: 'People systems lead',
-        nextAction: 'Resolve payroll approval dependency before migration rehearsal.',
+        nextAction:
+          'Resolve payroll approval dependency before migration rehearsal.',
       },
     ],
   },
@@ -227,7 +235,8 @@ export const mockProgramReadiness: ProgramReadiness = {
       initiative: 'Role and entitlement mapping',
       owner: 'People systems lead',
       status: 'Blocked',
-      nextAction: 'Resolve payroll approval dependency before migration rehearsal.',
+      nextAction:
+        'Resolve payroll approval dependency before migration rehearsal.',
     },
   ],
 };

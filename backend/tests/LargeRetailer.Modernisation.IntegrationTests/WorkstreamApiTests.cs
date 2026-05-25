@@ -170,14 +170,16 @@ public sealed class WorkstreamApiTests
             });
 
         var client = application.CreateClient();
+        var recordId = Random.Shared.Next(1_000_000, int.MaxValue);
 
         var emptyResponse = await client.GetAsync(
-            "/api/workflow-reviews/payments/1",
+            $"/api/workflow-reviews/payments/{recordId}",
             CancellationToken.None);
         Assert.Equal(HttpStatusCode.NotFound, emptyResponse.StatusCode);
 
-        var saveResponse = await client.PostAsJsonAsync(
-            "/api/workflow-reviews/payments/1",
+        var saveResponse = await PostWorkflowReviewAsync(
+            client,
+            $"/api/workflow-reviews/payments/{recordId}",
             new WorkflowReviewRequest(
                 "Blocked",
                 "Escalate cutover dependency",
@@ -188,12 +190,12 @@ public sealed class WorkstreamApiTests
         Assert.Equal(HttpStatusCode.Created, saveResponse.StatusCode);
 
         var review = await client.GetFromJsonAsync<WorkflowReviewResponse>(
-            "/api/workflow-reviews/payments/1",
+            $"/api/workflow-reviews/payments/{recordId}",
             CancellationToken.None);
 
         Assert.NotNull(review);
         Assert.Equal("payments", review.Slice);
-        Assert.Equal(1, review.RecordId);
+        Assert.Equal(recordId, review.RecordId);
         Assert.Equal("Blocked", review.Status);
         Assert.Equal("Escalate cutover dependency", review.Action);
     }
@@ -217,12 +219,49 @@ public sealed class WorkstreamApiTests
 
         var client = application.CreateClient();
 
-        var response = await client.PostAsJsonAsync(
+        var response = await PostWorkflowReviewAsync(
+            client,
             "/api/workflow-reviews/unknown/1",
             new WorkflowReviewRequest("NotReal", "short", "tiny", ""),
             CancellationToken.None);
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("Viewer")]
+    [InlineData("NotARole")]
+    public async Task Workflow_review_endpoint_requires_delivery_or_admin_role(string? role)
+    {
+        var databasePath = Path.Combine(Path.GetTempPath(), $"lar-modernisation-{Guid.NewGuid():N}.db");
+
+        await using var application = new WebApplicationFactory<Program>()
+            .WithWebHostBuilder(builder =>
+            {
+                builder.ConfigureAppConfiguration((_, configurationBuilder) =>
+                {
+                    configurationBuilder.AddInMemoryCollection(new Dictionary<string, string?>
+                    {
+                        ["ConnectionStrings:ModernisationDb"] = $"Data Source={databasePath}"
+                    });
+                });
+            });
+
+        var client = application.CreateClient();
+
+        var response = await PostWorkflowReviewAsync(
+            client,
+            "/api/workflow-reviews/payments/1",
+            new WorkflowReviewRequest(
+                "Blocked",
+                "Escalate cutover dependency",
+                "Reviewed with release lead and dependency owner.",
+                "Delivery lead"),
+            CancellationToken.None,
+            role);
+
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
 
     private sealed record WorkstreamResponse(
@@ -283,4 +322,24 @@ public sealed class WorkstreamApiTests
         string Note,
         string ReviewedBy,
         DateTimeOffset ReviewedAtUtc);
+
+    private static Task<HttpResponseMessage> PostWorkflowReviewAsync(
+        HttpClient client,
+        string endpoint,
+        WorkflowReviewRequest request,
+        CancellationToken cancellationToken,
+        string? role = "DeliveryLead")
+    {
+        var httpRequest = new HttpRequestMessage(HttpMethod.Post, endpoint)
+        {
+            Content = JsonContent.Create(request)
+        };
+
+        if (!string.IsNullOrWhiteSpace(role))
+        {
+            httpRequest.Headers.Add("X-LAR-DEMO-ROLE", role);
+        }
+
+        return client.SendAsync(httpRequest, cancellationToken);
+    }
 }

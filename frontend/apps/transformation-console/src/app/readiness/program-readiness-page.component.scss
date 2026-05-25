@@ -11,7 +11,10 @@ p {
 }
 
 .hero-metrics {
-  grid-template-columns: minmax(180px, 240px) minmax(180px, 240px) minmax(0, 1fr);
+  grid-template-columns: minmax(180px, 240px) minmax(180px, 240px) minmax(
+      0,
+      1fr
+    );
 }
 
 .signals {

@@ -6,6 +6,8 @@
     "config:local": "node scripts/write-runtime-config.mjs",
     "dev": "pnpm config:local && pnpm exec nx serve transformation-console",
     "build": "pnpm exec nx build transformation-console",
+    "format": "pnpm exec prettier . --write",
+    "format:check": "pnpm exec prettier . --check",
     "lint": "pnpm exec nx lint transformation-console",
     "test": "pnpm exec nx test transformation-console",
     "test:e2e": "pnpm config:local && pnpm exec nx e2e transformation-console-e2e"

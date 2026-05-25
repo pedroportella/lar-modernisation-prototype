@@ -1,3 +1,5 @@
-<lar-app-shell [runtimeLabel]="runtimeConfig.environmentLabel">
+<lar-app-shell
+  [runtimeLabel]="runtimeConfig.environmentLabel + ' | ' + runtimeConfig.role"
+>
   <router-outlet></router-outlet>
 </lar-app-shell>

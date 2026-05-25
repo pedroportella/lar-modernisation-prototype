@@ -18,7 +18,9 @@ async function pageAccessibilityIssues(page: Page) {
       const id = element.getAttribute('id');
       const labelledBy = element.getAttribute('aria-labelledby');
       const labelText = id
-        ? Array.from(document.querySelectorAll(`label[for="${CSS.escape(id)}"]`))
+        ? Array.from(
+            document.querySelectorAll(`label[for="${CSS.escape(id)}"]`),
+          )
             .map((label) => label.textContent?.trim())
             .filter(Boolean)
             .join(' ')
@@ -26,7 +28,9 @@ async function pageAccessibilityIssues(page: Page) {
       const labelledByText = labelledBy
         ? labelledBy
             .split(/\s+/)
-            .map((labelId) => document.getElementById(labelId)?.textContent?.trim())
+            .map((labelId) =>
+              document.getElementById(labelId)?.textContent?.trim(),
+            )
             .filter(Boolean)
             .join(' ')
         : '';
@@ -68,7 +72,9 @@ async function pageAccessibilityIssues(page: Page) {
 
     document.querySelectorAll('img').forEach((image) => {
       if (!image.hasAttribute('alt')) {
-        issues.push(`Image missing alt text: ${image.getAttribute('src') ?? 'unknown src'}`);
+        issues.push(
+          `Image missing alt text: ${image.getAttribute('src') ?? 'unknown src'}`,
+        );
       }
     });
 
@@ -77,20 +83,26 @@ async function pageAccessibilityIssues(page: Page) {
       if (type === 'hidden' || type === 'submit' || type === 'button') return;
 
       if (!accessibleName(control)) {
-        issues.push(`Form control missing accessible name: ${control.outerHTML.slice(0, 80)}`);
-      }
-    });
-
-    document.querySelectorAll('button, a[href], [role="button"]').forEach((control) => {
-      if (!accessibleName(control)) {
         issues.push(
-          `Interactive control missing accessible name: ${control.outerHTML.slice(0, 80)}`,
+          `Form control missing accessible name: ${control.outerHTML.slice(0, 80)}`,
         );
       }
     });
 
+    document
+      .querySelectorAll('button, a[href], [role="button"]')
+      .forEach((control) => {
+        if (!accessibleName(control)) {
+          issues.push(
+            `Interactive control missing accessible name: ${control.outerHTML.slice(0, 80)}`,
+          );
+        }
+      });
+
     document.querySelectorAll('ul > a[href], ol > a[href]').forEach((link) => {
-      issues.push(`List link must be wrapped in li: ${link.outerHTML.slice(0, 80)}`);
+      issues.push(
+        `List link must be wrapped in li: ${link.outerHTML.slice(0, 80)}`,
+      );
     });
 
     document.querySelectorAll('a[href^="#"]').forEach((link) => {
@@ -112,12 +124,21 @@ async function pageAccessibilityIssues(page: Page) {
   });
 }
 
-async function expectReachableByTab(page: Page, locator: Locator, label: string) {
-  await expect(locator, `${label} should exist before keyboard traversal`).toHaveCount(1);
+async function expectReachableByTab(
+  page: Page,
+  locator: Locator,
+  label: string,
+) {
+  await expect(
+    locator,
+    `${label} should exist before keyboard traversal`,
+  ).toHaveCount(1);
 
   for (let index = 0; index < 40; index += 1) {
     await page.keyboard.press('Tab');
-    const isFocused = await locator.evaluate((element) => document.activeElement === element);
+    const isFocused = await locator.evaluate(
+      (element) => document.activeElement === element,
+    );
 
     if (isFocused) return;
   }
@@ -133,7 +154,9 @@ async function expectShellKeyboardAccess(page: Page, browserName: string) {
     await expect(skipLink).toBeFocused();
     await page.keyboard.press('Enter');
     await expect(page).toHaveURL(/#main-content$/);
-    await expect(page.getByRole('link', { name: 'Dashboard home' })).toBeVisible();
+    await expect(
+      page.getByRole('link', { name: 'Dashboard home' }),
+    ).toBeVisible();
     await expect(page.getByRole('link', { name: 'Readiness' })).toBeVisible();
     return;
   }
@@ -144,8 +167,16 @@ async function expectShellKeyboardAccess(page: Page, browserName: string) {
   await page.keyboard.press('Enter');
   await expect(page).toHaveURL(/#main-content$/);
 
-  await expectReachableByTab(page, page.getByRole('link', { name: 'Dashboard home' }), 'Home');
-  await expectReachableByTab(page, page.getByRole('link', { name: 'Readiness' }), 'Readiness');
+  await expectReachableByTab(
+    page,
+    page.getByRole('link', { name: 'Dashboard home' }),
+    'Home',
+  );
+  await expectReachableByTab(
+    page,
+    page.getByRole('link', { name: 'Readiness' }),
+    'Readiness',
+  );
 }
 
 type RgbColour = {
@@ -217,7 +248,9 @@ async function computedContrast(locator: Locator) {
   return locator.evaluate((element) => {
     const parseRgba = (colour: string) => {
       if (colour === 'transparent') return { alpha: 0, b: 0, g: 0, r: 0 };
-      const match = /^rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([.\d]+))?\)$/i.exec(colour);
+      const match = /^rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([.\d]+))?\)$/i.exec(
+        colour,
+      );
       if (!match) return null;
 
       return {
@@ -231,7 +264,8 @@ async function computedContrast(locator: Locator) {
       foreground: { alpha: number; b: number; g: number; r: number },
       background: { alpha: number; b: number; g: number; r: number },
     ) => {
-      const alpha = foreground.alpha + background.alpha * (1 - foreground.alpha);
+      const alpha =
+        foreground.alpha + background.alpha * (1 - foreground.alpha);
       if (alpha === 0) return { alpha: 0, b: 0, g: 0, r: 0 };
       const channel = (foregroundChannel: number, backgroundChannel: number) =>
         Math.round(
@@ -262,7 +296,9 @@ async function computedContrast(locator: Locator) {
         current = current.parentElement;
       }
 
-      const bodyBackground = parseRgba(getComputedStyle(document.body).backgroundColor) ?? {
+      const bodyBackground = parseRgba(
+        getComputedStyle(document.body).backgroundColor,
+      ) ?? {
         alpha: 1,
         b: 255,
         g: 255,
@@ -284,7 +320,9 @@ test.describe('accessibility and UX quality gates', () => {
     test(`has accessible structure for ${route}`, async ({ page }) => {
       await page.goto(route);
 
-      await expect(page).toHaveTitle(/Transformation|Payment|Warehouse|Platform|Insights|Automation|Operations|Readiness/);
+      await expect(page).toHaveTitle(
+        /Transformation|Payment|Warehouse|Platform|Insights|Automation|Operations|Readiness/,
+      );
       await expect(page.locator('main')).toHaveCount(1);
 
       const issues = await pageAccessibilityIssues(page);
@@ -292,36 +330,54 @@ test.describe('accessibility and UX quality gates', () => {
     });
   }
 
-  test('supports keyboard access through shell navigation', async ({ page, browserName }) => {
+  test('supports keyboard access through shell navigation', async ({
+    page,
+    browserName,
+  }) => {
     await page.goto('/');
     await expectShellKeyboardAccess(page, browserName);
     await expect(page.locator('main')).toBeVisible();
   });
 
-  test('keeps dark shell hover and focus contrast accessible', async ({ page }) => {
+  test('keeps dark shell hover and focus contrast accessible', async ({
+    page,
+  }) => {
     await page.goto('/');
 
     const brand = page.getByRole('link', { name: 'Dashboard home' });
     const brandTitle = brand.locator('strong');
     const brandSubtitle = brand.locator('small');
-    const activeNav = page.getByRole('link', { exact: true, name: 'Dashboard' });
+    const activeNav = page.getByRole('link', {
+      exact: true,
+      name: 'Dashboard',
+    });
     const inactiveNav = page.getByRole('link', { name: 'Payments' });
 
     await brand.hover();
     let colours = await computedContrast(brandTitle);
-    expect(contrastRatio(colours.foreground, colours.background)).toBeGreaterThanOrEqual(4.5);
+    expect(
+      contrastRatio(colours.foreground, colours.background),
+    ).toBeGreaterThanOrEqual(4.5);
     colours = await computedContrast(brandSubtitle);
-    expect(contrastRatio(colours.foreground, colours.background)).toBeGreaterThanOrEqual(4.5);
+    expect(
+      contrastRatio(colours.foreground, colours.background),
+    ).toBeGreaterThanOrEqual(4.5);
 
     await inactiveNav.hover();
     colours = await computedContrast(inactiveNav);
-    expect(contrastRatio(colours.foreground, colours.background)).toBeGreaterThanOrEqual(4.5);
+    expect(
+      contrastRatio(colours.foreground, colours.background),
+    ).toBeGreaterThanOrEqual(4.5);
 
     colours = await computedContrast(activeNav);
-    expect(contrastRatio(colours.foreground, colours.background)).toBeGreaterThanOrEqual(4.5);
+    expect(
+      contrastRatio(colours.foreground, colours.background),
+    ).toBeGreaterThanOrEqual(4.5);
   });
 
-  test('uses accessible contrast for primary content surfaces', async ({ page }) => {
+  test('uses accessible contrast for primary content surfaces', async ({
+    page,
+  }) => {
     await page.goto('/');
 
     const labels = [
@@ -335,7 +391,9 @@ test.describe('accessibility and UX quality gates', () => {
 
     for (const label of labels) {
       const colours = await computedContrast(label);
-      expect(contrastRatio(colours.foreground, colours.background)).toBeGreaterThanOrEqual(4.5);
+      expect(
+        contrastRatio(colours.foreground, colours.background),
+      ).toBeGreaterThanOrEqual(4.5);
     }
   });
 });

@@ -15,6 +15,7 @@ describe('mock API mode', () => {
     window.larRuntimeConfig = {
       apiBaseUrl: 'mock',
       mockApi: true,
+      role: 'DeliveryLead',
     };
 
     TestBed.configureTestingModule({
@@ -30,15 +31,17 @@ describe('mock API mode', () => {
   it('serves workstreams without a backend process', async () => {
     const service = TestBed.inject(TransformationApiService);
 
-    await expect(firstValueFrom(service.listWorkstreams())).resolves.toEqual(mockWorkstreams);
+    await expect(firstValueFrom(service.listWorkstreams())).resolves.toEqual(
+      mockWorkstreams,
+    );
   });
 
   it('serves derived readiness without a backend process', async () => {
     const service = TestBed.inject(TransformationApiService);
 
-    await expect(firstValueFrom(service.getProgramReadiness())).resolves.toEqual(
-      mockProgramReadiness,
-    );
+    await expect(
+      firstValueFrom(service.getProgramReadiness()),
+    ).resolves.toEqual(mockProgramReadiness);
   });
 
   it('persists workflow reviews in mock mode', async () => {
@@ -60,7 +63,9 @@ describe('mock API mode', () => {
       status: 'Blocked',
     });
 
-    await expect(firstValueFrom(service.getWorkflowReview('payments', 1))).resolves.toMatchObject({
+    await expect(
+      firstValueFrom(service.getWorkflowReview('payments', 1)),
+    ).resolves.toMatchObject({
       action: 'Escalate cutover dependency',
       recordId: 1,
       slice: 'payments',
@@ -73,8 +78,34 @@ describe('mock API mode', () => {
       apiBaseUrl: 'mock',
       environmentLabel: 'Frontend mock mode',
       mockApi: true,
+      role: 'DeliveryLead',
     });
     expect(TestBed.inject(LAR_API_BASE_URL)).toBe('mock');
+  });
+
+  it('rejects workflow review writes for viewer role in mock mode', async () => {
+    TestBed.resetTestingModule();
+    window.larRuntimeConfig = {
+      apiBaseUrl: 'mock',
+      mockApi: true,
+      role: 'Viewer',
+    };
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient(withInterceptors([larMockApiInterceptor]))],
+    });
+
+    const service = TestBed.inject(TransformationApiService);
+
+    await expect(
+      firstValueFrom(
+        service.saveWorkflowReview('payments', 1, {
+          status: 'Blocked',
+          action: 'Escalate cutover dependency',
+          note: 'Reviewed with release lead and dependency owner.',
+          reviewedBy: 'Delivery lead',
+        }),
+      ),
+    ).rejects.toMatchObject({ status: 403 });
   });
 
   it('normalises real API base URLs', () => {
@@ -83,6 +114,7 @@ describe('mock API mode', () => {
       apiBaseUrl: 'http://localhost:5029/',
       environmentLabel: 'Local API',
       mockApi: false,
+      role: 'Admin',
     };
     TestBed.configureTestingModule({});
 
@@ -90,6 +122,7 @@ describe('mock API mode', () => {
       apiBaseUrl: 'http://localhost:5029',
       environmentLabel: 'Local API',
       mockApi: false,
+      role: 'Admin',
     });
     expect(TestBed.inject(LAR_API_BASE_URL)).toBe('http://localhost:5029');
   });

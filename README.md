@@ -76,6 +76,7 @@ pnpm verify:full
 Frontend-only checks:
 
 ```bash
+pnpm frontend:format:check
 pnpm frontend:lint
 pnpm frontend:typecheck
 pnpm --dir frontend exec playwright install
@@ -85,6 +86,7 @@ pnpm frontend:e2e
 Backend-only checks:
 
 ```bash
+pnpm backend:format:check
 pnpm backend:build
 pnpm backend:test
 ```
@@ -102,6 +104,7 @@ The frontend container writes `/assets/runtime-config.js` at startup. Override t
 LAR_FRONTEND_API_BASE_URL=http://localhost:5029
 LAR_FRONTEND_ENVIRONMENT_LABEL="Docker API mode"
 LAR_FRONTEND_MOCK_API=false
+LAR_FRONTEND_ROLE=DeliveryLead
 ```
 
 See [docs/reviewer-runbook.md](docs/reviewer-runbook.md) for the reviewer smoke checklist and handover notes.
@@ -117,6 +120,8 @@ See [docs/ci-deployment-notes.md](docs/ci-deployment-notes.md) for CI and deploy
 - Feature routes for payments, warehouse, HR uplift, insights and automation.
 - Readiness route for derived program score, signals and recommended next actions.
 - Operations route for API readiness, SQLite status and seeded dataset counts.
+- Persisted workflow review writes protected by a demo role boundary.
+- Shared formatting and standards gates for frontend and backend.
 - Docker Compose stack for local full-stack review.
 - GitHub Actions workflow that validates frontend, backend and Docker packaging.
 - Runnable .NET API with layered project structure.
@@ -139,6 +144,8 @@ GET /api/warehouse/optimisation
 GET /api/hr/platform-uplift
 GET /api/insights/wayfinding
 GET /api/automation/candidates
+GET /api/workflow-reviews/{slice}/{recordId}
+POST /api/workflow-reviews/{slice}/{recordId}
 ```
 
 ## What Is Simulated
@@ -146,6 +153,12 @@ GET /api/automation/candidates
 - Payment provider integration.
 - Warehouse, HRIS and analytics feeds.
 - AI/model calls.
-- Enterprise identity, PCI controls and cloud deployment.
+- Enterprise SSO, PCI controls, row-level security and cloud deployment.
+
+Workflow review writes use a demo role header, not real identity:
+
+```text
+X-LAR-DEMO-ROLE: DeliveryLead
+```
 
 Those boundaries should be named honestly before production expansion.

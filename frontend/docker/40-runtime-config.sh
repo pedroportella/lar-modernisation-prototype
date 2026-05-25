@@ -5,6 +5,7 @@ config_path="/usr/share/nginx/html/assets/runtime-config.js"
 api_base_url="${LAR_FRONTEND_API_BASE_URL:-http://localhost:5029}"
 mock_api="${LAR_FRONTEND_MOCK_API:-false}"
 environment_label="${LAR_FRONTEND_ENVIRONMENT_LABEL:-Docker API mode}"
+role="${LAR_FRONTEND_ROLE:-DeliveryLead}"
 
 case "$(printf '%s' "$mock_api" | tr '[:upper:]' '[:lower:]')" in
   1|true|yes|on) mock_api="true" ;;
@@ -20,7 +21,8 @@ window.larRuntimeConfig = {
   apiBaseUrl: '$(js_escape "$api_base_url")',
   environmentLabel: '$(js_escape "$environment_label")',
   mockApi: $mock_api,
+  role: '$(js_escape "$role")',
 };
 EOF
 
-echo "Wrote runtime config to $config_path with apiBaseUrl=$api_base_url mockApi=$mock_api environmentLabel=$environment_label"
+echo "Wrote runtime config to $config_path with apiBaseUrl=$api_base_url mockApi=$mock_api environmentLabel=$environment_label role=$role"

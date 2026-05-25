@@ -35,6 +35,8 @@ export class ProgramReadinessPageComponent {
   protected readonly state$ = this.transformationApi.getProgramReadiness().pipe(
     map((readiness) => ({ status: 'ready' as const, readiness })),
     startWith({ status: 'loading', readiness: null } satisfies ReadinessState),
-    catchError(() => of({ status: 'error', readiness: null } satisfies ReadinessState)),
+    catchError(() =>
+      of({ status: 'error', readiness: null } satisfies ReadinessState),
+    ),
   );
 }

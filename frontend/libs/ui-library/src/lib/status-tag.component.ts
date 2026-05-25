@@ -51,6 +51,8 @@ export class StatusTagComponent {
   }
 
   protected statusClass(): string {
-    return this.status().replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
+    return this.status()
+      .replace(/([a-z])([A-Z])/g, '$1-$2')
+      .toLowerCase();
   }
 }

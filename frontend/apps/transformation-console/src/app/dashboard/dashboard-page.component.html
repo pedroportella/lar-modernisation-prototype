@@ -5,19 +5,30 @@
   metaLabel="Runtime posture"
   metaValue="Frontend mock capable"
 >
-
   @if (state$ | async; as state) {
     <section class="metrics" aria-label="Program summary">
-      <lar-summary-metric label="Total workstreams" [value]="state.workstreams.length"></lar-summary-metric>
-      <lar-summary-metric label="Needs attention" [value]="state.riskCount"></lar-summary-metric>
-      <lar-summary-metric label="API source" value="Runtime config"></lar-summary-metric>
+      <lar-summary-metric
+        label="Total workstreams"
+        [value]="state.workstreams.length"
+      ></lar-summary-metric>
+      <lar-summary-metric
+        label="Needs attention"
+        [value]="state.riskCount"
+      ></lar-summary-metric>
+      <lar-summary-metric
+        label="API source"
+        value="Runtime config"
+      ></lar-summary-metric>
     </section>
 
     @if (state.status === 'loading') {
-      <lar-loading-state message="Loading workstream data..."></lar-loading-state>
+      <lar-loading-state
+        message="Loading workstream data..."
+      ></lar-loading-state>
     } @else if (state.status === 'error') {
       <lar-page-alert tone="error" title="Unable to reach the backend API">
-        Check the runtime API configuration or enable mock API mode for frontend-only delivery.
+        Check the runtime API configuration or enable mock API mode for
+        frontend-only delivery.
       </lar-page-alert>
     } @else if (state.workstreams.length === 0) {
       <lar-empty-state

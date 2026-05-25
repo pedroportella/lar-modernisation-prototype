@@ -9,6 +9,7 @@ describe('App', () => {
       apiBaseUrl: 'mock',
       environmentLabel: 'Frontend mock mode',
       mockApi: true,
+      role: 'DeliveryLead',
     };
 
     await TestBed.configureTestingModule({
@@ -28,5 +29,6 @@ describe('App', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.querySelector('lar-app-shell')).not.toBeNull();
     expect(compiled.textContent).toContain('Frontend mock mode');
+    expect(compiled.textContent).toContain('DeliveryLead');
   });
 });

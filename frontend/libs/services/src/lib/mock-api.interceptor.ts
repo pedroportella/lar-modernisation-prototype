@@ -1,7 +1,11 @@
-import { HttpErrorResponse, HttpInterceptorFn, HttpResponse } from '@angular/common/http';
+import {
+  HttpErrorResponse,
+  HttpInterceptorFn,
+  HttpResponse,
+} from '@angular/common/http';
 import { inject } from '@angular/core';
 import { delay, of, throwError } from 'rxjs';
-import { LAR_RUNTIME_CONFIG } from './api-config';
+import { LAR_DEMO_ROLE_HEADER, LAR_RUNTIME_CONFIG } from './api-config';
 import {
   mockAutomationCandidates,
   mockHrPlatformTasks,
@@ -35,7 +39,12 @@ export const larMockApiInterceptor: HttpInterceptorFn = (request, next) => {
   }
 
   const path = apiPathFromUrl(request.url);
-  const response = mockResponseForRequest(request.method, path, request.body);
+  const response = mockResponseForRequest(
+    request.method,
+    path,
+    request.headers.get(LAR_DEMO_ROLE_HEADER),
+    request.body,
+  );
 
   if (response === undefined) {
     return next(request);
@@ -45,7 +54,10 @@ export const larMockApiInterceptor: HttpInterceptorFn = (request, next) => {
     return throwError(() => response);
   }
 
-  const httpResponse = new HttpResponse({ body: cloneMock(response.body), status: response.status });
+  const httpResponse = new HttpResponse({
+    body: cloneMock(response.body),
+    status: response.status,
+  });
 
   return request.method === 'POST' && path.startsWith('/api/workflow-reviews/')
     ? of(httpResponse).pipe(delay(150))
@@ -55,12 +67,21 @@ export const larMockApiInterceptor: HttpInterceptorFn = (request, next) => {
 function mockResponseForRequest(
   method: string,
   path: string,
+  role: string | null,
   body: unknown,
 ): { body: unknown; status: number } | HttpErrorResponse | undefined {
-  const workflowReviewMatch = path.match(/^\/api\/workflow-reviews\/([^/]+)\/([^/]+)$/);
+  const workflowReviewMatch = path.match(
+    /^\/api\/workflow-reviews\/([^/]+)\/([^/]+)$/,
+  );
 
   if (workflowReviewMatch) {
-    return mockWorkflowReviewResponse(method, workflowReviewMatch[1], workflowReviewMatch[2], body);
+    return mockWorkflowReviewResponse(
+      method,
+      workflowReviewMatch[1],
+      workflowReviewMatch[2],
+      role,
+      body,
+    );
   }
 
   if (method !== 'GET') {
@@ -71,7 +92,9 @@ function mockResponseForRequest(
 
   if (workstreamDetailMatch) {
     return {
-      body: mockWorkstreamDetails.find((workstream) => workstream.id === workstreamDetailMatch[1]),
+      body: mockWorkstreamDetails.find(
+        (workstream) => workstream.id === workstreamDetailMatch[1],
+      ),
       status: 200,
     };
   }
@@ -85,6 +108,7 @@ function mockWorkflowReviewResponse(
   method: string,
   slice: string,
   recordId: string,
+  role: string | null,
   body: unknown,
 ): { body: unknown; status: number } | HttpErrorResponse {
   const key = `${slice}:${recordId}`;
@@ -98,13 +122,26 @@ function mockWorkflowReviewResponse(
   }
 
   if (method !== 'POST') {
-    return new HttpErrorResponse({ status: 405, statusText: 'Method Not Allowed' });
+    return new HttpErrorResponse({
+      status: 405,
+      statusText: 'Method Not Allowed',
+    });
+  }
+
+  if (!['DeliveryLead', 'Admin'].includes(role ?? '')) {
+    return new HttpErrorResponse({
+      status: 403,
+      statusText: 'Forbidden',
+    });
   }
 
   const request = body as WorkflowReviewRequest;
 
   if (request.note.toLowerCase().includes('api failure')) {
-    return new HttpErrorResponse({ status: 500, statusText: 'Mock API failure' });
+    return new HttpErrorResponse({
+      status: 500,
+      statusText: 'Mock API failure',
+    });
   }
 
   const review: WorkflowReview = {

@@ -17,14 +17,19 @@ const env = {
 };
 
 const mockApi = parseBoolean(env['LAR_FRONTEND_MOCK_API'], true);
-const apiBaseUrl = env['LAR_FRONTEND_API_BASE_URL'] ?? (mockApi ? 'mock' : 'http://localhost:5029');
+const apiBaseUrl =
+  env['LAR_FRONTEND_API_BASE_URL'] ??
+  (mockApi ? 'mock' : 'http://localhost:5029');
 const environmentLabel =
-  env['LAR_FRONTEND_ENVIRONMENT_LABEL'] ?? (mockApi ? 'Frontend mock mode' : 'Backend API mode');
+  env['LAR_FRONTEND_ENVIRONMENT_LABEL'] ??
+  (mockApi ? 'Frontend mock mode' : 'Backend API mode');
+const role = env['LAR_FRONTEND_ROLE'] ?? 'DeliveryLead';
 
 const contents = `window.larRuntimeConfig = {
   apiBaseUrl: '${escapeJsString(apiBaseUrl)}',
   environmentLabel: '${escapeJsString(environmentLabel)}',
   mockApi: ${mockApi ? 'true' : 'false'},
+  role: '${escapeJsString(role)}',
 };
 `;
 
@@ -33,7 +38,7 @@ await writeFile(runtimeConfigPath, contents, 'utf8');
 console.log(
   `Wrote ${relativePath(
     runtimeConfigPath,
-  )} with apiBaseUrl=${apiBaseUrl} mockApi=${mockApi} environmentLabel=${environmentLabel}`,
+  )} with apiBaseUrl=${apiBaseUrl} mockApi=${mockApi} environmentLabel=${environmentLabel} role=${role}`,
 );
 
 async function readEnvFile(path) {

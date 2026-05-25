@@ -1,9 +1,28 @@
 import { AsyncPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  signal,
+} from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
-import { catchError, EMPTY, map, Observable, of, startWith, switchMap, take, tap } from 'rxjs';
-import { TransformationApiService, WorkflowReview } from '@lar/services';
+import {
+  catchError,
+  EMPTY,
+  map,
+  Observable,
+  of,
+  startWith,
+  switchMap,
+  take,
+  tap,
+} from 'rxjs';
+import {
+  LAR_RUNTIME_CONFIG,
+  TransformationApiService,
+  WorkflowReview,
+} from '@lar/services';
 import {
   LoadingStateComponent,
   PageAlertComponent,
@@ -51,7 +70,8 @@ const featureConfigs: Record<string, FeatureConfig> = {
     sliceKey: 'payments',
     eyebrow: 'Payment migration',
     title: 'Migration Readiness',
-    summary: 'Checklist items for moving from the current payment platform to a Stripe-style provider boundary.',
+    summary:
+      'Checklist items for moving from the current payment platform to a Stripe-style provider boundary.',
     sourceLabel: '/api/payments/migration-readiness',
     load: 'listPaymentReadiness',
     statusKey: 'status',
@@ -106,7 +126,8 @@ const featureConfigs: Record<string, FeatureConfig> = {
     sliceKey: 'insights',
     eyebrow: 'Wayfinding insights',
     title: 'Decision Metrics',
-    summary: 'Dashboard metrics that help leaders find the right operational signal quickly.',
+    summary:
+      'Dashboard metrics that help leaders find the right operational signal quickly.',
     sourceLabel: '/api/insights/wayfinding',
     load: 'listInsightMetrics',
     statusKey: 'status',
@@ -123,7 +144,8 @@ const featureConfigs: Record<string, FeatureConfig> = {
     sliceKey: 'automation',
     eyebrow: 'Automation and AI',
     title: 'Opportunity Queue',
-    summary: 'Candidates for automation or AI-assisted tooling with governance-aware next steps.',
+    summary:
+      'Candidates for automation or AI-assisted tooling with governance-aware next steps.',
     sourceLabel: '/api/automation/candidates',
     load: 'listAutomationCandidates',
     actionKey: 'recommendedNextStep',
@@ -158,13 +180,19 @@ export class FeatureSlicePageComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly transformationApi = inject(TransformationApiService);
   private readonly formBuilder = inject(FormBuilder);
+  private readonly runtimeConfig = inject(LAR_RUNTIME_CONFIG);
 
   protected readonly searchTerm = signal('');
   protected readonly statusFilter = signal('all');
   protected readonly selectedRecordId = signal<string | number | null>(null);
-  protected readonly workflowReviews = signal<Record<string, WorkflowReview>>({});
+  protected readonly workflowReviews = signal<Record<string, WorkflowReview>>(
+    {},
+  );
   protected readonly workflowSaveState = signal<WorkflowSaveState>('idle');
   protected readonly workflowError = signal('');
+  protected readonly canWriteWorkflowReviews =
+    this.runtimeConfig.role === 'DeliveryLead' ||
+    this.runtimeConfig.role === 'Admin';
 
   protected readonly reviewForm = this.formBuilder.nonNullable.group({
     status: ['Monitoring', Validators.required],
@@ -177,17 +205,28 @@ export class FeatureSlicePageComponent {
   private readonly loadedWorkflowReviewKeys = new Set<string>();
 
   protected readonly state$: Observable<FeatureState> = this.route.data.pipe(
-    map((data) => featureConfigs[data['slice'] as string] ?? featureConfigs['payments']),
+    map(
+      (data) =>
+        featureConfigs[data['slice'] as string] ?? featureConfigs['payments'],
+    ),
     switchMap((config) =>
       this.loadRecords(config).pipe(
         tap((records) => this.ensureSelectedRecord(records, config)),
-        map((records): FeatureState => ({
-          status: 'ready',
+        map(
+          (records): FeatureState => ({
+            status: 'ready',
+            config,
+            records,
+          }),
+        ),
+        startWith({
+          status: 'loading',
           config,
-          records,
-        })),
-        startWith({ status: 'loading', config, records: [] } satisfies FeatureState),
-        catchError(() => of({ status: 'error', config, records: [] } satisfies FeatureState)),
+          records: [],
+        } satisfies FeatureState),
+        catchError(() =>
+          of({ status: 'error', config, records: [] } satisfies FeatureState),
+        ),
       ),
     ),
   );
@@ -210,7 +249,10 @@ export class FeatureSlicePageComponent {
     this.syncReviewForm(record, config);
   }
 
-  protected filteredRecords(records: FeatureRecord[], config: FeatureConfig): FeatureRecord[] {
+  protected filteredRecords(
+    records: FeatureRecord[],
+    config: FeatureConfig,
+  ): FeatureRecord[] {
     const query = this.searchTerm().trim().toLowerCase();
     const status = this.statusFilter();
 
@@ -218,32 +260,49 @@ export class FeatureSlicePageComponent {
       const matchesQuery =
         !query ||
         config.columns.some((column) =>
-          String(this.valueFor(record, column, config)).toLowerCase().includes(query),
+          String(this.valueFor(record, column, config))
+            .toLowerCase()
+            .includes(query),
         );
       const matchesStatus =
         status === 'all' ||
         !config.statusKey ||
-        String(this.valueFor(record, { key: config.statusKey, label: 'Status' }, config)) ===
-          status;
+        String(
+          this.valueFor(
+            record,
+            { key: config.statusKey, label: 'Status' },
+            config,
+          ),
+        ) === status;
 
       return matchesQuery && matchesStatus;
     });
   }
 
-  protected statusOptions(records: FeatureRecord[], config: FeatureConfig): string[] {
+  protected statusOptions(
+    records: FeatureRecord[],
+    config: FeatureConfig,
+  ): string[] {
     if (!config.statusKey) return [];
     const statusKey = config.statusKey;
 
-    return Array.from(new Set(records.map((record) => String(record[statusKey])))).sort();
+    return Array.from(
+      new Set(records.map((record) => String(record[statusKey]))),
+    ).sort();
   }
 
-  protected attentionCount(records: FeatureRecord[], config: FeatureConfig): number {
+  protected attentionCount(
+    records: FeatureRecord[],
+    config: FeatureConfig,
+  ): number {
     if (!config.statusKey) return 0;
     const statusKey = config.statusKey;
 
     return records.filter((record) =>
       ['AtRisk', 'Blocked'].includes(
-        String(this.valueFor(record, { key: statusKey, label: 'Status' }, config)),
+        String(
+          this.valueFor(record, { key: statusKey, label: 'Status' }, config),
+        ),
       ),
     ).length;
   }
@@ -259,7 +318,10 @@ export class FeatureSlicePageComponent {
     return String(record[config.primaryKey] ?? record['id'] ?? 'Record');
   }
 
-  protected detailColumns(record: FeatureRecord, config: FeatureConfig): FeatureColumn[] {
+  protected detailColumns(
+    record: FeatureRecord,
+    config: FeatureConfig,
+  ): FeatureColumn[] {
     return config.columns.filter((column) => record[column.key] !== undefined);
   }
 
@@ -268,7 +330,9 @@ export class FeatureSlicePageComponent {
     column: FeatureColumn,
     config?: FeatureConfig,
   ): string | number {
-    const review = config ? this.workflowReviews()[this.reviewKey(record, config)] : undefined;
+    const review = config
+      ? this.workflowReviews()[this.reviewKey(record, config)]
+      : undefined;
 
     if (review && column.key === config?.statusKey) {
       return review.status;
@@ -281,15 +345,22 @@ export class FeatureSlicePageComponent {
     return record[column.key] ?? '';
   }
 
-  protected isStatusColumn(column: FeatureColumn, config: FeatureConfig): boolean {
+  protected isStatusColumn(
+    column: FeatureColumn,
+    config: FeatureConfig,
+  ): boolean {
     return column.key === config.statusKey;
   }
 
-  protected submitWorkflowReview(record: FeatureRecord, config: FeatureConfig): void {
+  protected submitWorkflowReview(
+    record: FeatureRecord,
+    config: FeatureConfig,
+  ): void {
     this.syncReviewForm(record, config);
     this.reviewForm.markAllAsTouched();
 
-    if (this.reviewForm.invalid || this.workflowSaveState() === 'saving') return;
+    if (this.reviewForm.invalid || this.workflowSaveState() === 'saving')
+      return;
 
     const value = this.reviewForm.getRawValue();
     this.workflowSaveState.set('saving');
@@ -306,7 +377,9 @@ export class FeatureSlicePageComponent {
         take(1),
         catchError(() => {
           this.workflowSaveState.set('error');
-          this.workflowError.set('Review could not be saved. Keep the form open and try again.');
+          this.workflowError.set(
+            'Review could not be saved. Keep the form open and try again.',
+          );
           return of(null);
         }),
       )
@@ -325,11 +398,17 @@ export class FeatureSlicePageComponent {
       });
   }
 
-  protected resetWorkflowReview(record: FeatureRecord, config: FeatureConfig): void {
+  protected resetWorkflowReview(
+    record: FeatureRecord,
+    config: FeatureConfig,
+  ): void {
     this.syncReviewForm(record, config, true);
   }
 
-  protected hasWorkflowReview(record: FeatureRecord, config: FeatureConfig): boolean {
+  protected hasWorkflowReview(
+    record: FeatureRecord,
+    config: FeatureConfig,
+  ): boolean {
     return this.workflowReviews()[this.reviewKey(record, config)] !== undefined;
   }
 
@@ -345,31 +424,53 @@ export class FeatureSlicePageComponent {
     }
   }
 
-  protected statusReviewOptions(records: FeatureRecord[], config: FeatureConfig): string[] {
-    const existing = config.statusKey ? this.statusOptions(records, config) : [];
-    return Array.from(new Set([...existing, 'OnTrack', 'Monitoring', 'AtRisk', 'Blocked'])).sort();
+  protected statusReviewOptions(
+    records: FeatureRecord[],
+    config: FeatureConfig,
+  ): string[] {
+    const existing = config.statusKey
+      ? this.statusOptions(records, config)
+      : [];
+    return Array.from(
+      new Set([...existing, 'OnTrack', 'Monitoring', 'AtRisk', 'Blocked']),
+    ).sort();
   }
 
   private loadRecords(config: FeatureConfig): Observable<FeatureRecord[]> {
     switch (config.load) {
       case 'listPaymentReadiness':
-        return this.transformationApi.listPaymentReadiness().pipe(map(toFeatureRecords));
+        return this.transformationApi
+          .listPaymentReadiness()
+          .pipe(map(toFeatureRecords));
       case 'listWarehouseSignals':
-        return this.transformationApi.listWarehouseSignals().pipe(map(toFeatureRecords));
+        return this.transformationApi
+          .listWarehouseSignals()
+          .pipe(map(toFeatureRecords));
       case 'listHrPlatformTasks':
-        return this.transformationApi.listHrPlatformTasks().pipe(map(toFeatureRecords));
+        return this.transformationApi
+          .listHrPlatformTasks()
+          .pipe(map(toFeatureRecords));
       case 'listInsightMetrics':
-        return this.transformationApi.listInsightMetrics().pipe(map(toFeatureRecords));
+        return this.transformationApi
+          .listInsightMetrics()
+          .pipe(map(toFeatureRecords));
       case 'listAutomationCandidates':
-        return this.transformationApi.listAutomationCandidates().pipe(map(toFeatureRecords));
+        return this.transformationApi
+          .listAutomationCandidates()
+          .pipe(map(toFeatureRecords));
     }
   }
 
-  private ensureSelectedRecord(records: FeatureRecord[], config: FeatureConfig): void {
+  private ensureSelectedRecord(
+    records: FeatureRecord[],
+    config: FeatureConfig,
+  ): void {
     if (records.length === 0) return;
 
     const selectedId = this.selectedRecordId();
-    const selectedStillExists = records.some((record) => record['id'] === selectedId);
+    const selectedStillExists = records.some(
+      (record) => record['id'] === selectedId,
+    );
 
     if (!selectedStillExists) {
       this.selectedRecordId.set(records[0]['id']);
@@ -377,7 +478,11 @@ export class FeatureSlicePageComponent {
     }
   }
 
-  private syncReviewForm(record: FeatureRecord, config?: FeatureConfig, force = false): void {
+  private syncReviewForm(
+    record: FeatureRecord,
+    config?: FeatureConfig,
+    force = false,
+  ): void {
     if (!config) return;
 
     const recordKey = this.reviewKey(record, config);
@@ -385,8 +490,12 @@ export class FeatureSlicePageComponent {
 
     const review = this.workflowReviews()[recordKey];
     this.reviewForm.reset({
-      status: review?.status ?? String(record[config.statusKey ?? 'status'] ?? 'Monitoring'),
-      action: review?.action ?? String(record[config.actionKey ?? 'nextAction'] ?? ''),
+      status:
+        review?.status ??
+        String(record[config.statusKey ?? 'status'] ?? 'Monitoring'),
+      action:
+        review?.action ??
+        String(record[config.actionKey ?? 'nextAction'] ?? ''),
       note: review?.note ?? '',
       reviewedBy: review?.reviewedBy ?? '',
     });
@@ -396,7 +505,10 @@ export class FeatureSlicePageComponent {
     this.loadPersistedWorkflowReview(record, config);
   }
 
-  private loadPersistedWorkflowReview(record: FeatureRecord, config: FeatureConfig): void {
+  private loadPersistedWorkflowReview(
+    record: FeatureRecord,
+    config: FeatureConfig,
+  ): void {
     const recordKey = this.reviewKey(record, config);
 
     if (this.loadedWorkflowReviewKeys.has(recordKey)) {
@@ -416,7 +528,10 @@ export class FeatureSlicePageComponent {
           [recordKey]: review,
         }));
 
-        if (this.activeWorkflowRecordKey === recordKey && !this.reviewForm.dirty) {
+        if (
+          this.activeWorkflowRecordKey === recordKey &&
+          !this.reviewForm.dirty
+        ) {
           this.reviewForm.reset({
             status: review.status,
             action: review.action,

@@ -47,9 +47,17 @@ export class DashboardPageComponent {
         ).length,
       };
     }),
-    startWith({ status: 'loading', workstreams: [], riskCount: 0 } satisfies DashboardState),
+    startWith({
+      status: 'loading',
+      workstreams: [],
+      riskCount: 0,
+    } satisfies DashboardState),
     catchError(() =>
-      of({ status: 'error', workstreams: [], riskCount: 0 } satisfies DashboardState),
+      of({
+        status: 'error',
+        workstreams: [],
+        riskCount: 0,
+      } satisfies DashboardState),
     ),
   );
 }

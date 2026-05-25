@@ -7,9 +7,11 @@
     metaLabel="API source"
     [metaValue]="state.config.sourceLabel"
   >
-
     <section class="summary" aria-label="Feature summary">
-      <lar-summary-metric label="Records" [value]="state.records.length"></lar-summary-metric>
+      <lar-summary-metric
+        label="Records"
+        [value]="state.records.length"
+      ></lar-summary-metric>
       <lar-summary-metric
         label="Visible"
         [value]="filteredRecords(state.records, state.config).length"
@@ -24,7 +26,8 @@
       <lar-loading-state message="Loading feature data..."></lar-loading-state>
     } @else if (state.status === 'error') {
       <lar-page-alert tone="error" title="Unable to reach the backend API">
-        Check the runtime API configuration or enable mock API mode for frontend-only delivery.
+        Check the runtime API configuration or enable mock API mode for
+        frontend-only delivery.
       </lar-page-alert>
     } @else {
       <section class="filters" aria-label="Table filters">
@@ -42,9 +45,16 @@
         @if (state.config.statusKey) {
           <div class="field">
             <label for="feature-status">Status</label>
-            <select id="feature-status" [value]="statusFilter()" (change)="updateStatusFilter($event)">
+            <select
+              id="feature-status"
+              [value]="statusFilter()"
+              (change)="updateStatusFilter($event)"
+            >
               <option value="all">All statuses</option>
-              @for (status of statusOptions(state.records, state.config); track status) {
+              @for (
+                status of statusOptions(state.records, state.config);
+                track status
+              ) {
                 <option [value]="status">{{ status }}</option>
               }
             </select>
@@ -56,7 +66,8 @@
 
       @if (filteredRecords(state.records, state.config).length === 0) {
         <lar-page-alert tone="info" title="No matching records">
-          Clear filters or adjust the search term to broaden the current operational view.
+          Clear filters or adjust the search term to broaden the current
+          operational view.
         </lar-page-alert>
       } @else {
         <section class="data-layout" aria-label="Filtered records and detail">
@@ -70,16 +81,33 @@
                 </tr>
               </thead>
               <tbody>
-                @for (record of filteredRecords(state.records, state.config); track record['id']) {
-                  <tr [class.selected]="selectedRecord(filteredRecords(state.records, state.config))?.['id'] === record['id']">
+                @for (
+                  record of filteredRecords(state.records, state.config);
+                  track record['id']
+                ) {
+                  <tr
+                    [class.selected]="
+                      selectedRecord(
+                        filteredRecords(state.records, state.config)
+                      )?.['id'] === record['id']
+                    "
+                  >
                     @for (column of state.config.columns; track column.key) {
                       <td>
                         @if (column.key === state.config.primaryKey) {
-                          <button type="button" class="record-link" (click)="selectRecord(record, state.config)">
+                          <button
+                            type="button"
+                            class="record-link"
+                            (click)="selectRecord(record, state.config)"
+                          >
                             {{ valueFor(record, column, state.config) }}
                           </button>
                         } @else if (isStatusColumn(column, state.config)) {
-                          <lar-status-tag [status]="valueFor(record, column, state.config).toString()"></lar-status-tag>
+                          <lar-status-tag
+                            [status]="
+                              valueFor(record, column, state.config).toString()
+                            "
+                          ></lar-status-tag>
                         } @else {
                           {{ valueFor(record, column, state.config) }}
                         }
@@ -91,17 +119,27 @@
             </table>
           </div>
 
-          @if (selectedRecord(filteredRecords(state.records, state.config)); as record) {
+          @if (
+            selectedRecord(filteredRecords(state.records, state.config));
+            as record
+          ) {
             <aside class="detail-panel" aria-label="Selected record detail">
               <span>{{ state.config.detailTitle }}</span>
               <h2>{{ recordLabel(record, state.config) }}</h2>
               <dl>
-                @for (column of detailColumns(record, state.config); track column.key) {
+                @for (
+                  column of detailColumns(record, state.config);
+                  track column.key
+                ) {
                   <div>
                     <dt>{{ column.label }}</dt>
                     <dd>
                       @if (isStatusColumn(column, state.config)) {
-                        <lar-status-tag [status]="valueFor(record, column, state.config).toString()"></lar-status-tag>
+                        <lar-status-tag
+                          [status]="
+                            valueFor(record, column, state.config).toString()
+                          "
+                        ></lar-status-tag>
                       } @else {
                         {{ valueFor(record, column, state.config) }}
                       }
@@ -110,79 +148,128 @@
                 }
               </dl>
 
-              <form
-                class="workflow-form"
-                [formGroup]="reviewForm"
-                (ngSubmit)="submitWorkflowReview(record, state.config)"
-                aria-label="Status review workflow"
-              >
-                <div class="workflow-heading">
-                  <span>Workflow update</span>
-                  @if (hasWorkflowReview(record, state.config)) {
-                    <strong>Persisted review applied</strong>
-                  }
-                </div>
-
-                <div class="field">
-                  <label for="workflow-status">Status review</label>
-                  <select id="workflow-status" formControlName="status">
-                    @for (status of statusReviewOptions(state.records, state.config); track status) {
-                      <option [value]="status">{{ status }}</option>
+              @if (canWriteWorkflowReviews) {
+                <form
+                  class="workflow-form"
+                  [formGroup]="reviewForm"
+                  (ngSubmit)="submitWorkflowReview(record, state.config)"
+                  aria-label="Status review workflow"
+                >
+                  <div class="workflow-heading">
+                    <span>Workflow update</span>
+                    @if (hasWorkflowReview(record, state.config)) {
+                      <strong>Persisted review applied</strong>
                     }
-                  </select>
-                  @if (reviewForm.controls.status.touched && reviewForm.controls.status.invalid) {
-                    <p class="field-error">Choose a status before saving.</p>
+                  </div>
+
+                  <div class="field">
+                    <label for="workflow-status">Status review</label>
+                    <select id="workflow-status" formControlName="status">
+                      @for (
+                        status of statusReviewOptions(
+                          state.records,
+                          state.config
+                        );
+                        track status
+                      ) {
+                        <option [value]="status">{{ status }}</option>
+                      }
+                    </select>
+                    @if (
+                      reviewForm.controls.status.touched &&
+                      reviewForm.controls.status.invalid
+                    ) {
+                      <p class="field-error">Choose a status before saving.</p>
+                    }
+                  </div>
+
+                  <div class="field">
+                    <label for="workflow-action">{{
+                      actionLabel(state.config)
+                    }}</label>
+                    <input
+                      id="workflow-action"
+                      type="text"
+                      formControlName="action"
+                    />
+                    @if (
+                      reviewForm.controls.action.touched &&
+                      reviewForm.controls.action.invalid
+                    ) {
+                      <p class="field-error">
+                        Enter at least 8 characters for the action.
+                      </p>
+                    }
+                  </div>
+
+                  <div class="field">
+                    <label for="workflow-note">Review note</label>
+                    <textarea
+                      id="workflow-note"
+                      rows="4"
+                      formControlName="note"
+                    ></textarea>
+                    @if (
+                      reviewForm.controls.note.touched &&
+                      reviewForm.controls.note.invalid
+                    ) {
+                      <p class="field-error">
+                        Add a note of at least 12 characters.
+                      </p>
+                    }
+                  </div>
+
+                  <div class="field">
+                    <label for="workflow-reviewed-by">Reviewed by</label>
+                    <input
+                      id="workflow-reviewed-by"
+                      type="text"
+                      formControlName="reviewedBy"
+                    />
+                    @if (
+                      reviewForm.controls.reviewedBy.touched &&
+                      reviewForm.controls.reviewedBy.invalid
+                    ) {
+                      <p class="field-error">Enter the reviewer or role.</p>
+                    }
+                  </div>
+
+                  @if (reviewForm.dirty && workflowSaveState() === 'idle') {
+                    <p class="workflow-state" role="status">Unsaved changes</p>
+                  } @else if (workflowSaveState() === 'saving') {
+                    <p class="workflow-state" role="status">Saving review...</p>
+                  } @else if (workflowSaveState() === 'saved') {
+                    <p class="workflow-state success" role="status">
+                      Review saved to backend.
+                    </p>
+                  } @else if (workflowSaveState() === 'error') {
+                    <p class="workflow-state error" role="alert">
+                      {{ workflowError() }}
+                    </p>
                   }
-                </div>
 
-                <div class="field">
-                  <label for="workflow-action">{{ actionLabel(state.config) }}</label>
-                  <input id="workflow-action" type="text" formControlName="action" />
-                  @if (reviewForm.controls.action.touched && reviewForm.controls.action.invalid) {
-                    <p class="field-error">Enter at least 8 characters for the action.</p>
-                  }
-                </div>
-
-                <div class="field">
-                  <label for="workflow-note">Review note</label>
-                  <textarea id="workflow-note" rows="4" formControlName="note"></textarea>
-                  @if (reviewForm.controls.note.touched && reviewForm.controls.note.invalid) {
-                    <p class="field-error">Add a note of at least 12 characters.</p>
-                  }
-                </div>
-
-                <div class="field">
-                  <label for="workflow-reviewed-by">Reviewed by</label>
-                  <input id="workflow-reviewed-by" type="text" formControlName="reviewedBy" />
-                  @if (reviewForm.controls.reviewedBy.touched && reviewForm.controls.reviewedBy.invalid) {
-                    <p class="field-error">Enter the reviewer or role.</p>
-                  }
-                </div>
-
-                @if (reviewForm.dirty && workflowSaveState() === 'idle') {
-                  <p class="workflow-state" role="status">Unsaved changes</p>
-                } @else if (workflowSaveState() === 'saving') {
-                  <p class="workflow-state" role="status">Saving review...</p>
-                } @else if (workflowSaveState() === 'saved') {
-                  <p class="workflow-state success" role="status">Review saved to backend.</p>
-                } @else if (workflowSaveState() === 'error') {
-                  <p class="workflow-state error" role="alert">{{ workflowError() }}</p>
-                }
-
-                <div class="workflow-actions">
-                  <button type="submit" [disabled]="workflowSaveState() === 'saving'">
-                    Save review
-                  </button>
-                  <button
-                    type="button"
-                    class="secondary"
-                    [disabled]="workflowSaveState() === 'saving'"
-                    (click)="resetWorkflowReview(record, state.config)"
-                  >
-                    Reset
-                  </button>
-                </div>
-              </form>
+                  <div class="workflow-actions">
+                    <button
+                      type="submit"
+                      [disabled]="workflowSaveState() === 'saving'"
+                    >
+                      Save review
+                    </button>
+                    <button
+                      type="button"
+                      class="secondary"
+                      [disabled]="workflowSaveState() === 'saving'"
+                      (click)="resetWorkflowReview(record, state.config)"
+                    >
+                      Reset
+                    </button>
+                  </div>
+                </form>
+              } @else {
+                <lar-page-alert tone="info" title="Read-only role">
+                  Workflow review writes require DeliveryLead or Admin access.
+                </lar-page-alert>
+              }
             </aside>
           }
         </section>

@@ -76,15 +76,22 @@ describe('ui-library components', () => {
 
     it('renders the title, eyebrow and optional summary', () => {
       fixture.componentRef.setInput('headingId', 'dashboard-title');
-      fixture.componentRef.setInput('summary', 'Program status across active workstreams.');
+      fixture.componentRef.setInput(
+        'summary',
+        'Program status across active workstreams.',
+      );
 
       fixture.detectChanges();
 
-      const heading = fixture.nativeElement.querySelector('h1') as HTMLHeadingElement;
+      const heading = fixture.nativeElement.querySelector(
+        'h1',
+      ) as HTMLHeadingElement;
       expect(heading.id).toBe('dashboard-title');
       expect(heading.textContent?.trim()).toBe('Transformation dashboard');
       expect(fixture.nativeElement.textContent).toContain('Overview');
-      expect(fixture.nativeElement.textContent).toContain('Program status across active workstreams.');
+      expect(fixture.nativeElement.textContent).toContain(
+        'Program status across active workstreams.',
+      );
     });
   });
 
@@ -107,7 +114,9 @@ describe('ui-library components', () => {
       expect(alert.classList.contains('alert--error')).toBe(true);
       expect(alert.getAttribute('aria-live')).toBe('assertive');
       expect(alert.textContent).toContain('Unable to load');
-      expect(alert.textContent).toContain('Try again after refreshing the operational view.');
+      expect(alert.textContent).toContain(
+        'Try again after refreshing the operational view.',
+      );
     });
   });
 
@@ -128,7 +137,9 @@ describe('ui-library components', () => {
 
       fixture.detectChanges();
 
-      const metric = fixture.nativeElement.querySelector('.metric') as HTMLElement;
+      const metric = fixture.nativeElement.querySelector(
+        '.metric',
+      ) as HTMLElement;
       expect(metric.textContent).toContain('At-risk workstreams');
       expect(metric.textContent).toContain('2');
     });
@@ -148,11 +159,15 @@ describe('ui-library components', () => {
     it('renders page identity, metadata, actions and projected body content', () => {
       fixture.detectChanges();
 
-      const heading = fixture.nativeElement.querySelector('h1') as HTMLHeadingElement;
+      const heading = fixture.nativeElement.querySelector(
+        'h1',
+      ) as HTMLHeadingElement;
       expect(heading.id).toBe('operations-title');
       expect(heading.textContent?.trim()).toBe('Runtime Status');
       expect(fixture.nativeElement.textContent).toContain('Runtime source');
-      expect(fixture.nativeElement.textContent).toContain('Configured API boundary');
+      expect(fixture.nativeElement.textContent).toContain(
+        'Configured API boundary',
+      );
       expect(fixture.nativeElement.textContent).toContain('Refresh');
       expect(fixture.nativeElement.textContent).toContain('Route body');
     });
@@ -173,15 +188,22 @@ describe('ui-library components', () => {
       fixture.componentRef.setInput('eyebrow', 'Actions');
       fixture.componentRef.setInput('title', 'Recommended Next Actions');
       fixture.componentRef.setInput('headingId', 'recommended-actions');
-      fixture.componentRef.setInput('summary', 'Prioritised moves from current posture.');
+      fixture.componentRef.setInput(
+        'summary',
+        'Prioritised moves from current posture.',
+      );
 
       fixture.detectChanges();
 
-      const heading = fixture.nativeElement.querySelector('h2') as HTMLHeadingElement;
+      const heading = fixture.nativeElement.querySelector(
+        'h2',
+      ) as HTMLHeadingElement;
       expect(heading.id).toBe('recommended-actions');
       expect(heading.textContent?.trim()).toBe('Recommended Next Actions');
       expect(fixture.nativeElement.textContent).toContain('Actions');
-      expect(fixture.nativeElement.textContent).toContain('Prioritised moves from current posture.');
+      expect(fixture.nativeElement.textContent).toContain(
+        'Prioritised moves from current posture.',
+      );
     });
   });
 });
