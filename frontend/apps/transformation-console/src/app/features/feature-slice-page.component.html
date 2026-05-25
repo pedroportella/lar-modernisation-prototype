@@ -37,7 +37,7 @@
                 @for (column of state.config.columns; track column.key) {
                   <td>
                     @if (isStatusColumn(column, state.config)) {
-                      <lar-status-pill [status]="valueFor(record, column).toString()"></lar-status-pill>
+                      <lar-status-tag [status]="valueFor(record, column).toString()"></lar-status-tag>
                     } @else {
                       {{ valueFor(record, column) }}
                     }

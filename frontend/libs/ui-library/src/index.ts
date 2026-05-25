@@ -6,5 +6,6 @@ export * from './lib/loading-state.component';
 export * from './lib/page-alert.component';
 export * from './lib/page-header.component';
 export * from './lib/status-pill.component';
+export * from './lib/status-tag.component';
 export * from './lib/summary-metric.component';
 export * from './lib/workstream-card.component';

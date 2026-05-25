@@ -19,7 +19,7 @@
         <div>
           <span>Overall status</span>
           <strong>
-            <lar-status-pill [status]="state.readiness.overallStatus"></lar-status-pill>
+            <lar-status-tag [status]="state.readiness.overallStatus"></lar-status-tag>
           </strong>
         </div>
         <div class="summary">
@@ -33,7 +33,7 @@
           <div>
             <span>{{ signal.label }}</span>
             <strong>{{ signal.value }}</strong>
-            <lar-status-pill [status]="signal.status"></lar-status-pill>
+            <lar-status-tag [status]="signal.status"></lar-status-tag>
           </div>
         }
       </section>
@@ -46,7 +46,7 @@
               <span>{{ action.workstreamName }}</span>
               <h3>{{ action.initiative }}</h3>
             </div>
-            <lar-status-pill [status]="action.status"></lar-status-pill>
+            <lar-status-tag [status]="action.status"></lar-status-tag>
             <p>{{ action.nextAction }}</p>
             <small>{{ action.owner }}</small>
           </article>

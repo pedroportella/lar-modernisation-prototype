@@ -2,7 +2,7 @@ import { AsyncPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { catchError, map, of, startWith } from 'rxjs';
 import { ProgramReadiness, TransformationApiService } from '@lar/services';
-import { StatusPillComponent } from '@lar/ui-library';
+import { StatusTagComponent } from '@lar/ui-library';
 
 type ReadinessState =
   | { status: 'loading'; readiness: null }
@@ -11,7 +11,7 @@ type ReadinessState =
 
 @Component({
   selector: 'app-program-readiness-page',
-  imports: [AsyncPipe, StatusPillComponent],
+  imports: [AsyncPipe, StatusTagComponent],
   templateUrl: './program-readiness-page.component.html',
   styleUrl: './program-readiness-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

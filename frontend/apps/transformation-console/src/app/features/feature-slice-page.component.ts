@@ -3,7 +3,7 @@ import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { catchError, map, Observable, of, startWith, switchMap } from 'rxjs';
 import { TransformationApiService } from '@lar/services';
-import { StatusPillComponent } from '@lar/ui-library';
+import { StatusTagComponent } from '@lar/ui-library';
 
 interface FeatureColumn {
   key: string;
@@ -111,7 +111,7 @@ const featureConfigs: Record<string, FeatureConfig> = {
 
 @Component({
   selector: 'app-feature-slice-page',
-  imports: [AsyncPipe, StatusPillComponent],
+  imports: [AsyncPipe, StatusTagComponent],
   templateUrl: './feature-slice-page.component.html',
   styleUrl: './feature-slice-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

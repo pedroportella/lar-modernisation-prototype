@@ -1,15 +1,15 @@
 import { Component, input } from '@angular/core';
 import { Workstream } from '@lar/services';
-import { StatusPillComponent } from './status-pill.component';
+import { StatusTagComponent } from './status-tag.component';
 
 @Component({
   selector: 'lar-workstream-card',
-  imports: [StatusPillComponent],
+  imports: [StatusTagComponent],
   template: `
     <article class="card">
       <div class="card-header">
         <span class="priority">P{{ workstream().priority }}</span>
-        <lar-status-pill [status]="workstream().status"></lar-status-pill>
+        <lar-status-tag [status]="workstream().status"></lar-status-tag>
       </div>
 
       <h2>{{ workstream().name }}</h2>

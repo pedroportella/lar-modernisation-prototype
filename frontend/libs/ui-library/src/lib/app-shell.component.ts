@@ -11,6 +11,8 @@ import {
   imports: [RouterLink, RouterLinkActive],
   template: `
     <div class="au-body shell">
+      <a class="skip-link" href="#main-content">Skip to main content</a>
+
       <aside class="sidebar" aria-label="Primary">
         <a class="brand" routerLink="/" aria-label="Dashboard home">
           <span class="brand-mark">{{ markInitials }}</span>
@@ -20,26 +22,31 @@ import {
           </span>
         </a>
 
-        <nav>
-          @for (item of navItems; track item.path) {
-            <a
-              [routerLink]="item.path"
-              routerLinkActive="active"
-              [routerLinkActiveOptions]="{ exact: item.path === '/' }"
-            >
-              {{ item.label }}
-            </a>
+        <nav class="primary-nav" aria-label="Workspace">
+          @for (group of navGroups; track group.label) {
+            <section class="nav-group" [attr.aria-labelledby]="group.id">
+              <h2 [id]="group.id">{{ group.label }}</h2>
+              @for (item of group.items; track item.path) {
+                <a
+                  [routerLink]="item.path"
+                  routerLinkActive="active"
+                  [routerLinkActiveOptions]="{ exact: item.path === '/' }"
+                >
+                  {{ item.label }}
+                </a>
+              }
+            </section>
           }
         </nav>
       </aside>
 
       <div class="workspace">
-        <header>
-          <span>Modernisation program</span>
-          <strong>Local prototype</strong>
+        <header class="workspace-bar">
+          <span>Modernisation workspace</span>
+          <strong>Frontend mock mode</strong>
         </header>
 
-        <main>
+        <main id="main-content" tabindex="-1">
           <ng-content></ng-content>
         </main>
       </div>
@@ -54,10 +61,29 @@ import {
         background: var(--lar-surface-page);
       }
 
+      .skip-link {
+        position: fixed;
+        top: var(--lar-space-3);
+        left: var(--lar-space-3);
+        z-index: 10;
+        transform: translateY(calc(-100% - var(--lar-space-4)));
+        border-radius: var(--lar-radius);
+        background: var(--lar-action);
+        color: #ffffff;
+        font-weight: 800;
+        padding: var(--lar-space-2) var(--lar-space-3);
+        text-decoration: none;
+        transition: transform 120ms ease;
+      }
+
+      .skip-link:focus {
+        transform: translateY(0);
+      }
+
       .sidebar {
         display: flex;
         flex-direction: column;
-        gap: var(--lar-space-6);
+        gap: var(--lar-space-5);
         padding: var(--lar-space-5);
         border-right: 1px solid var(--lar-border);
         background: var(--lar-shell);
@@ -98,7 +124,28 @@ import {
         color: var(--lar-shell-muted);
       }
 
-      nav a {
+      .primary-nav,
+      .nav-group {
+        display: grid;
+        gap: var(--lar-space-2);
+      }
+
+      .nav-group + .nav-group {
+        margin-top: var(--lar-space-3);
+        padding-top: var(--lar-space-4);
+        border-top: 1px solid rgba(255, 255, 255, 0.12);
+      }
+
+      .nav-group h2 {
+        margin: 0;
+        color: rgba(255, 255, 255, 0.64);
+        font-size: 0.72rem;
+        font-weight: 800;
+        letter-spacing: 0;
+        text-transform: uppercase;
+      }
+
+      .primary-nav a {
         display: block;
         padding: 0.7rem 0.8rem;
         border-radius: var(--lar-radius);
@@ -107,8 +154,8 @@ import {
         text-decoration: none;
       }
 
-      nav a.active,
-      nav a:hover {
+      .primary-nav a.active,
+      .primary-nav a:hover {
         background: rgba(255, 255, 255, 0.12);
         color: #ffffff;
       }
@@ -117,7 +164,7 @@ import {
         min-width: 0;
       }
 
-      header {
+      .workspace-bar {
         display: flex;
         min-height: 64px;
         align-items: center;
@@ -129,7 +176,7 @@ import {
         color: var(--lar-text-muted);
       }
 
-      header strong {
+      .workspace-bar strong {
         color: var(--lar-text);
       }
 
@@ -147,7 +194,7 @@ import {
           border-bottom: 1px solid rgba(255, 255, 255, 0.12);
         }
 
-        header {
+        .workspace-bar {
           padding: 0 var(--lar-space-4);
         }
 
@@ -162,14 +209,32 @@ export class AppShellComponent {
   protected readonly productName = LAR_PRODUCT_NAME;
   protected readonly clientLabel = LAR_NEUTRAL_CLIENT_LABEL;
   protected readonly markInitials = LAR_MARK_INITIALS;
-  protected readonly navItems = [
-    { label: 'Dashboard', path: '/' },
-    { label: 'Payments', path: '/payments' },
-    { label: 'Readiness', path: '/readiness' },
-    { label: 'Warehouse', path: '/warehouse' },
-    { label: 'HR uplift', path: '/hr-platform' },
-    { label: 'Insights', path: '/insights' },
-    { label: 'Automation', path: '/automation' },
-    { label: 'Operations', path: '/operations' },
+  protected readonly navGroups = [
+    {
+      id: 'overview-navigation',
+      label: 'Overview',
+      items: [
+        { label: 'Dashboard', path: '/' },
+        { label: 'Readiness', path: '/readiness' },
+      ],
+    },
+    {
+      id: 'workstream-navigation',
+      label: 'Workstreams',
+      items: [
+        { label: 'Payments', path: '/payments' },
+        { label: 'Warehouse', path: '/warehouse' },
+        { label: 'HR uplift', path: '/hr-platform' },
+      ],
+    },
+    {
+      id: 'operations-navigation',
+      label: 'Operations',
+      items: [
+        { label: 'Insights', path: '/insights' },
+        { label: 'Automation', path: '/automation' },
+        { label: 'Operations status', path: '/operations' },
+      ],
+    },
   ];
 }
