@@ -6,6 +6,9 @@ services:
     environment:
       ASPNETCORE_URLS: ${LAR_BACKEND_CONTAINER_URLS:-http://+:8080}
       ConnectionStrings__ModernisationDb: ${ConnectionStrings__ModernisationDb:-Data Source=/data/modernisation.db}
+      Cors__AllowedOrigins__0: ${LAR_BACKEND_CORS_ORIGIN:-http://localhost:4200}
+      Security__RateLimiting__PermitLimit: ${LAR_BACKEND_RATE_LIMIT_PERMIT_LIMIT:-120}
+      Security__RateLimiting__WindowSeconds: ${LAR_BACKEND_RATE_LIMIT_WINDOW_SECONDS:-60}
     ports:
       - "${LAR_BACKEND_PORT:-5029}:8080"
     volumes:

@@ -105,6 +105,9 @@ LAR_FRONTEND_API_BASE_URL=http://localhost:5029
 LAR_FRONTEND_ENVIRONMENT_LABEL="Docker API mode"
 LAR_FRONTEND_MOCK_API=false
 LAR_FRONTEND_ROLE=DeliveryLead
+LAR_BACKEND_CORS_ORIGIN=http://localhost:4200
+LAR_BACKEND_RATE_LIMIT_PERMIT_LIMIT=120
+LAR_BACKEND_RATE_LIMIT_WINDOW_SECONDS=60
 ```
 
 See [docs/reviewer-runbook.md](docs/reviewer-runbook.md) for the reviewer smoke checklist and handover notes.
@@ -121,6 +124,8 @@ See [docs/ci-deployment-notes.md](docs/ci-deployment-notes.md) for CI and deploy
 - Readiness route for derived program score, signals and recommended next actions.
 - Operations route for API readiness, SQLite status and seeded dataset counts.
 - Persisted workflow review writes protected by a demo role boundary.
+- Server-side feature query contracts with paging, filtering and sort validation.
+- Baseline security hardening: API rate limiting, explicit CORS config and nginx security headers.
 - Shared formatting and standards gates for frontend and backend.
 - Docker Compose stack for local full-stack review.
 - GitHub Actions workflow that validates frontend, backend and Docker packaging.

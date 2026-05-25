@@ -34,6 +34,24 @@ A production path would keep the same separation of concerns:
 - inject runtime API URL, CORS origins and database connection strings through environment-specific configuration;
 - add identity, observability, secret management and deployment approvals before any real client data is used.
 
+## Security Hardening Notes
+
+The prototype now carries a visible baseline security posture:
+
+- API requests under `/api` use ASP.NET fixed-window rate limiting.
+- Rate-limit responses return `429` problem details with the current `correlationId`.
+- CORS origins are explicit configuration in non-development environments.
+- The Docker stack sets the local reviewer origin with `Cors__AllowedOrigins__0`.
+- nginx sends `X-Content-Type-Options`, `Referrer-Policy` and a baseline `Content-Security-Policy`.
+
+Recommended CI additions before production promotion:
+
+- run `dotnet list package --vulnerable --include-transitive` for backend dependency review;
+- run `pnpm --dir frontend audit` or an equivalent organisation-approved JS dependency scanner;
+- scan built backend and frontend container images with a tool such as Trivy, Grype, Snyk or the organisation's registry scanner;
+- publish scan results as CI artifacts and fail on agreed severity thresholds;
+- keep CSP, CORS and rate-limit values environment-specific rather than hard-coded in application code.
+
 ## Local Release Check
 
 Before sharing a build with reviewers:

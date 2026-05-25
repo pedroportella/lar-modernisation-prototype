@@ -293,8 +293,13 @@ public sealed class WorkstreamApiTests
             "/api/workflow-reviews/unknown/1",
             new WorkflowReviewRequest("NotReal", "short", "tiny", ""),
             CancellationToken.None);
+        var problem = await JsonDocument.ParseAsync(
+            await response.Content.ReadAsStreamAsync(CancellationToken.None),
+            cancellationToken: CancellationToken.None);
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.True(problem.RootElement.TryGetProperty("correlationId", out _));
+        Assert.True(problem.RootElement.TryGetProperty("errors", out _));
     }
 
     [Theory]
@@ -425,6 +430,45 @@ public sealed class WorkstreamApiTests
             cancellationToken: CancellationToken.None);
 
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        Assert.Equal(
+            suppliedCorrelationId,
+            problem.RootElement.GetProperty("correlationId").GetString());
+    }
+
+    [Fact]
+    public async Task Api_rate_limit_returns_correlated_problem_response()
+    {
+        var databasePath = Path.Combine(Path.GetTempPath(), $"lar-modernisation-{Guid.NewGuid():N}.db");
+
+        await using var application = new WebApplicationFactory<Program>()
+            .WithWebHostBuilder(builder =>
+            {
+                builder.ConfigureAppConfiguration((_, configurationBuilder) =>
+                {
+                    configurationBuilder.AddInMemoryCollection(new Dictionary<string, string?>
+                    {
+                        ["ConnectionStrings:ModernisationDb"] = $"Data Source={databasePath}",
+                        ["Security:RateLimiting:PermitLimit"] = "1",
+                        ["Security:RateLimiting:WindowSeconds"] = "60"
+                    });
+                });
+            });
+
+        var client = application.CreateClient();
+        const string suppliedCorrelationId = "limited-query";
+        var firstRequest = new HttpRequestMessage(HttpMethod.Get, "/api/workstreams");
+        firstRequest.Headers.Add("X-Correlation-ID", "first-query");
+        var limitedRequest = new HttpRequestMessage(HttpMethod.Get, "/api/workstreams");
+        limitedRequest.Headers.Add("X-Correlation-ID", suppliedCorrelationId);
+
+        var firstResponse = await client.SendAsync(firstRequest, CancellationToken.None);
+        var limitedResponse = await client.SendAsync(limitedRequest, CancellationToken.None);
+        var problem = await JsonDocument.ParseAsync(
+            await limitedResponse.Content.ReadAsStreamAsync(CancellationToken.None),
+            cancellationToken: CancellationToken.None);
+
+        Assert.Equal(HttpStatusCode.OK, firstResponse.StatusCode);
+        Assert.Equal((HttpStatusCode)429, limitedResponse.StatusCode);
         Assert.Equal(
             suppliedCorrelationId,
             problem.RootElement.GetProperty("correlationId").GetString());

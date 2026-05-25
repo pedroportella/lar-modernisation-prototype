@@ -26,4 +26,17 @@ public static class CorrelatedResults
                 ["correlationId"] = correlationId
             });
     }
+
+    public static IResult TooManyRequests(HttpContext httpContext)
+    {
+        var correlationId = CorrelationIds.Current(httpContext);
+
+        return Results.Problem(
+            "Too many API requests. Wait briefly before retrying.",
+            statusCode: StatusCodes.Status429TooManyRequests,
+            extensions: new Dictionary<string, object?>
+            {
+                ["correlationId"] = correlationId
+            });
+    }
 }

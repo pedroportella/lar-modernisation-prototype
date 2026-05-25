@@ -5,10 +5,13 @@ using LargeRetailer.Modernisation.Application.WorkflowReviews;
 using LargeRetailer.Modernisation.Infrastructure;
 using LargeRetailer.Modernisation.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
+using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
+var frontendOrigins = FrontendCorsOrigins.From(builder.Configuration, builder.Environment);
 
 builder.Services.AddOpenApi();
 builder.Services.AddScoped<IFeatureSliceQueryService, FeatureSliceQueryService>();
@@ -18,27 +21,55 @@ builder.Services.AddScoped<IWorkflowReviewService, WorkflowReviewService>();
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AngularDev", policy =>
+    options.AddPolicy("Frontend", policy =>
     {
-        policy
-            .WithOrigins(
-                "http://localhost:4200",
-                "http://localhost:4300",
-                "http://127.0.0.1:4200",
-                "http://127.0.0.1:4300")
+        if (frontendOrigins.Length == 0)
+        {
+            policy.SetIsOriginAllowed(_ => false);
+            return;
+        }
+
+        policy.WithOrigins(frontendOrigins)
             .AllowAnyHeader()
             .AllowAnyMethod();
+    });
+});
+builder.Services.AddRateLimiter(options =>
+{
+    var rateLimit = ApiRateLimitOptions.From(builder.Configuration);
+
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.OnRejected = async (context, cancellationToken) =>
+    {
+        await CorrelatedResults
+            .TooManyRequests(context.HttpContext)
+            .ExecuteAsync(context.HttpContext);
+    };
+    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
+    {
+        if (!context.Request.Path.StartsWithSegments("/api"))
+        {
+            return RateLimitPartition.GetNoLimiter("non-api");
+        }
+
+        var partitionKey = context.Connection.RemoteIpAddress?.ToString() ?? "unknown-client";
+
+        return RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey,
+            _ => new FixedWindowRateLimiterOptions
+            {
+                AutoReplenishment = true,
+                PermitLimit = rateLimit.PermitLimit,
+                QueueLimit = 0,
+                Window = TimeSpan.FromSeconds(rateLimit.WindowSeconds)
+            });
     });
 });
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-}
-
-app.UseCors("AngularDev");
+app.UseRouting();
+app.UseCors("Frontend");
 
 app.Use(async (context, next) =>
 {
@@ -73,6 +104,13 @@ app.Use(async (context, next) =>
             correlationId);
     }
 });
+
+if (app.Environment.IsDevelopment())
+{
+    app.MapOpenApi();
+}
+
+app.UseRateLimiter();
 
 using (var scope = app.Services.CreateScope())
 {
@@ -284,6 +322,47 @@ app.MapPost("/api/workflow-reviews/{slice}/{recordId:int}", async (
 app.Run();
 
 public sealed record HealthResponse(string Status, string Service);
+
+public static class FrontendCorsOrigins
+{
+    private static readonly string[] DevelopmentOrigins =
+    [
+        "http://localhost:4200",
+        "http://localhost:4300",
+        "http://127.0.0.1:4200",
+        "http://127.0.0.1:4300"
+    ];
+
+    public static string[] From(IConfiguration configuration, IWebHostEnvironment environment)
+    {
+        var configuredOrigins = configuration
+            .GetSection("Cors:AllowedOrigins")
+            .Get<string[]>()?
+            .Where(origin => !string.IsNullOrWhiteSpace(origin))
+            .Select(origin => origin.Trim())
+            .ToArray();
+
+        if (configuredOrigins is { Length: > 0 })
+        {
+            return configuredOrigins;
+        }
+
+        return environment.IsDevelopment() ? DevelopmentOrigins : [];
+    }
+}
+
+public sealed record ApiRateLimitOptions(int PermitLimit, int WindowSeconds)
+{
+    public static ApiRateLimitOptions From(IConfiguration configuration)
+    {
+        var permitLimit = configuration.GetValue("Security:RateLimiting:PermitLimit", 120);
+        var windowSeconds = configuration.GetValue("Security:RateLimiting:WindowSeconds", 60);
+
+        return new ApiRateLimitOptions(
+            Math.Max(1, permitLimit),
+            Math.Max(1, windowSeconds));
+    }
+}
 
 public static class FeatureQueryRequest
 {
