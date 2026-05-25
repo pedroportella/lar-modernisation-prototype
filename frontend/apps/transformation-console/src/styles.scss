@@ -2,6 +2,7 @@
 
 html {
   box-sizing: border-box;
+  min-height: 100%;
 }
 
 *,
@@ -11,8 +12,16 @@ html {
 }
 
 body {
+  min-height: 100%;
   margin: 0;
   background: var(--lar-surface-page);
   color: var(--lar-text);
   font-family: var(--lar-font-family);
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
 }

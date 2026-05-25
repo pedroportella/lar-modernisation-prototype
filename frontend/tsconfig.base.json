@@ -16,6 +16,7 @@
     "skipDefaultLibCheck": true,
     "paths": {
       "@lar/services": ["libs/services/src/index.ts"],
+      "@lar/mock-api-fixtures": ["libs/services/src/lib/mock-api.fixtures.ts"],
       "@lar/ui-assets": ["libs/ui-assets/src/index.ts"],
       "@lar/ui-library": ["libs/ui-library/src/index.ts"],
       "@lar/utils": ["libs/utils/src/index.ts"]

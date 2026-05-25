@@ -1,3 +1,4 @@
 window.larRuntimeConfig = {
-  apiBaseUrl: 'http://localhost:5029',
+  apiBaseUrl: 'mock',
+  mockApi: true,
 };

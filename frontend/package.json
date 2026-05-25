@@ -2,7 +2,13 @@
   "name": "@frontend/source",
   "version": "0.0.0",
   "license": "MIT",
-  "scripts": {},
+  "scripts": {
+    "dev": "pnpm exec nx serve transformation-console",
+    "build": "pnpm exec nx build transformation-console",
+    "lint": "pnpm exec nx lint transformation-console",
+    "test": "pnpm exec nx test transformation-console",
+    "test:e2e": "pnpm exec nx e2e transformation-console-e2e"
+  },
   "private": true,
   "dependencies": {
     "@angular-devkit/build-angular": "~21.2.0",
@@ -14,6 +20,7 @@
     "@angular/platform-server": "~21.2.0",
     "@angular/router": "~21.2.0",
     "@angular/ssr": "~21.2.0",
+    "@health.gov.au/health-design-system": "3.2.0",
     "express": "^4.21.2",
     "rxjs": "~7.8.0"
   },
@@ -45,10 +52,12 @@
     "eslint": "^9.8.0",
     "eslint-config-prettier": "^10.0.0",
     "eslint-plugin-playwright": "^1.6.2",
+    "jsdom": "^29.1.1",
     "nx": "22.7.3",
     "prettier": "~3.6.2",
     "tslib": "^2.3.0",
     "typescript": "~5.9.2",
-    "typescript-eslint": "^8.40.0"
+    "typescript-eslint": "^8.40.0",
+    "vitest": "^4.1.7"
   }
 }

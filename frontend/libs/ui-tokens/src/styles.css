@@ -1,20 +1,27 @@
 :root {
-  --lar-font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --lar-surface-page: #f5f7f4;
+  --lar-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  --lar-hds-text: #313131;
+  --lar-hds-link: #005eb8;
+  --lar-hds-focus: #9263de;
+  --lar-hds-border: #d6d6d6;
+  --lar-surface-page: #f4f6f7;
   --lar-surface: #ffffff;
-  --lar-surface-muted: #eef4f1;
-  --lar-border: #d7e1dc;
-  --lar-border-strong: #b8c9c2;
-  --lar-text: #172326;
-  --lar-text-muted: #556468;
-  --lar-action: #006b73;
-  --lar-action-strong: #004f59;
-  --lar-accent: #237c5b;
+  --lar-surface-muted: #eef3f5;
+  --lar-border: var(--lar-hds-border);
+  --lar-border-strong: #aebcc2;
+  --lar-text: var(--lar-hds-text);
+  --lar-text-muted: #59686f;
+  --lar-action: var(--lar-hds-link);
+  --lar-action-strong: #004b93;
+  --lar-accent: #007a78;
   --lar-warning: #a06400;
   --lar-danger: #b42318;
   --lar-success: #1d7044;
-  --lar-focus: #2f80ed;
-  --lar-shadow: 0 18px 42px rgba(21, 39, 42, 0.08);
+  --lar-focus: var(--lar-hds-focus);
+  --lar-shell: #1f2933;
+  --lar-shell-muted: #c6d1d8;
+  --lar-shell-active: #ffffff;
+  --lar-shadow: 0 14px 32px rgba(31, 41, 51, 0.1);
   --lar-radius: 8px;
   --lar-space-1: 0.25rem;
   --lar-space-2: 0.5rem;
@@ -22,6 +29,17 @@
   --lar-space-4: 1rem;
   --lar-space-5: 1.5rem;
   --lar-space-6: 2rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 :focus-visible {

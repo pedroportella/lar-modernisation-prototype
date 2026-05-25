@@ -1,5 +1,34 @@
 # Frontend
 
+## Frontend-Only Mode
+
+The Angular app can run without Docker or the .NET backend. Local runtime config enables the in-app mock API by default:
+
+```js
+window.larRuntimeConfig = {
+  apiBaseUrl: 'mock',
+  mockApi: true,
+};
+```
+
+Run the UI only:
+
+```sh
+pnpm dev
+```
+
+Run frontend checks without the backend:
+
+```sh
+pnpm lint
+pnpm test
+pnpm test:e2e
+```
+
+Mock data lives in `libs/services/src/lib/mock-api.fixtures.ts`. The Angular app uses `larMockApiInterceptor` when `mockApi` is true, and Playwright imports the same fixture module through `@lar/mock-api-fixtures` so local UI and tests stay aligned.
+
+For Docker or full-stack review, keep `frontend/docker/runtime-config.js` pointed at the real API.
+
 <a alt="Nx logo" href="https://nx.dev" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png" width="45"></a>
 
 ✨ Your new, shiny [Nx workspace](https://nx.dev) is ready ✨.

@@ -21,22 +21,25 @@
             "input": "apps/transformation-console/public"
           }
         ],
-        "styles": ["apps/transformation-console/src/styles.scss"]
+        "styles": [
+          "node_modules/@health.gov.au/health-design-system/build/css/hds-all.css",
+          "apps/transformation-console/src/styles.scss"
+        ],
+        "budgets": [
+          {
+            "type": "initial",
+            "maximumWarning": "750kb",
+            "maximumError": "1.2mb"
+          },
+          {
+            "type": "anyComponentStyle",
+            "maximumWarning": "4kb",
+            "maximumError": "8kb"
+          }
+        ]
       },
       "configurations": {
         "production": {
-          "budgets": [
-            {
-              "type": "initial",
-              "maximumWarning": "500kb",
-              "maximumError": "1mb"
-            },
-            {
-              "type": "anyComponentStyle",
-              "maximumWarning": "4kb",
-              "maximumError": "8kb"
-            }
-          ],
           "outputHashing": "all"
         },
         "development": {
@@ -62,6 +65,15 @@
     },
     "lint": {
       "executor": "@nx/eslint:lint"
+    },
+    "test": {
+      "executor": "@angular/build:unit-test",
+      "options": {
+        "buildTarget": "transformation-console:build:development",
+        "runner": "vitest",
+        "tsConfig": "apps/transformation-console/tsconfig.spec.json",
+        "watch": false
+      }
     },
     "serve-static": {
       "continuous": true,

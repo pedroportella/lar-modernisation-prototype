@@ -1,134 +1,11 @@
 import { test, expect } from '@playwright/test';
-
-const workstreams = [
-  {
-    id: 'payments',
-    name: 'Payments Migration',
-    status: 'AtRisk',
-    summary: 'Move payments onto the modern provider boundary.',
-    priority: 1,
-  },
-  {
-    id: 'warehouse',
-    name: 'Warehouse Optimisation',
-    status: 'OnTrack',
-    summary: 'Reduce dispatch friction across fulfilment centres.',
-    priority: 2,
-  },
-];
-
-const featureResponses: Record<string, unknown[]> = {
-  '/api/payments/migration-readiness': [
-    {
-      id: 1,
-      area: 'Token migration',
-      status: 'AtRisk',
-      risk: 'Provider cutover',
-      owner: 'Payments lead',
-      nextAction: 'Validate dual-write plan',
-    },
-  ],
-  '/api/warehouse/optimisation': [
-    {
-      id: 1,
-      signalName: 'Pick exceptions',
-      currentValue: 14,
-      unit: 'per shift',
-      status: 'OnTrack',
-      opportunity: 'Target bin-location corrections',
-    },
-  ],
-  '/api/hr/platform-uplift': [
-    {
-      id: 1,
-      taskName: 'Role mapping',
-      status: 'Blocked',
-      processRisk: 'Payroll approval dependency',
-      owner: 'People systems lead',
-    },
-  ],
-  '/api/insights/wayfinding': [
-    {
-      id: 1,
-      metricName: 'Decision latency',
-      value: 3,
-      unit: 'days',
-      status: 'AtRisk',
-    },
-  ],
-  '/api/automation/candidates': [
-    {
-      id: 1,
-      workflowName: 'Supplier onboarding triage',
-      valueScore: 8,
-      effortScore: 3,
-      riskClass: 'Medium',
-      recommendedNextStep: 'Run governance review',
-    },
-  ],
-};
-
-const operationsStatus = {
-  service: 'LargeRetailer.Modernisation.Api',
-  status: 'Ready',
-  environment: 'Development',
-  generatedAtUtc: '2026-05-25T00:00:00Z',
-  database: {
-    provider: 'SQLite',
-    status: 'Reachable',
-  },
-  counts: {
-    workstreams: 5,
-    initiatives: 6,
-    paymentReadinessItems: 2,
-    warehouseSignals: 1,
-    hrPlatformTasks: 1,
-    insightMetrics: 1,
-    automationCandidates: 1,
-  },
-};
-
-const programReadiness = {
-  overallStatus: 'AtRisk',
-  readinessScore: 66,
-  summary: '3 of 5 workstreams need active delivery attention.',
-  signals: [
-    { label: 'Total workstreams', value: 5, status: 'OnTrack' },
-    { label: 'Needs attention', value: 3, status: 'AtRisk' },
-    { label: 'On track', value: 2, status: 'OnTrack' },
-    { label: 'Monitoring', value: 2, status: 'Monitoring' },
-  ],
-  recommendedActions: [
-    {
-      workstreamId: 'payments',
-      workstreamName: 'Payment migration',
-      initiative: 'Cutover readiness review',
-      owner: 'Release lead',
-      status: 'AtRisk',
-      nextAction: 'Separate PCI review from local prototype assumptions.',
-    },
-  ],
-};
-
-test.beforeEach(async ({ page }) => {
-  await page.route('**/api/workstreams', async (route) => {
-    await route.fulfill({ json: workstreams });
-  });
-
-  for (const [path, records] of Object.entries(featureResponses)) {
-    await page.route(`**${path}`, async (route) => {
-      await route.fulfill({ json: records });
-    });
-  }
-
-  await page.route('**/api/operations/status', async (route) => {
-    await route.fulfill({ json: operationsStatus });
-  });
-
-  await page.route('**/api/program/readiness', async (route) => {
-    await route.fulfill({ json: programReadiness });
-  });
-});
+import {
+  mockAutomationCandidates,
+  mockHrPlatformTasks,
+  mockInsightMetrics,
+  mockPaymentReadiness,
+  mockWarehouseSignals,
+} from '@lar/mock-api-fixtures';
 
 test('renders dashboard workstreams from the API boundary', async ({ page }) => {
   await page.goto('/');
@@ -144,7 +21,7 @@ test('renders operations status from the API boundary', async ({ page }) => {
   await page.goto('/operations');
 
   await expect(page.getByRole('heading', { name: 'Runtime Status' })).toBeVisible();
-  await expect(page.getByText('SQLite Reachable')).toBeVisible();
+  await expect(page.getByText('Mock data Available')).toBeVisible();
   await expect(page.getByText('Payment readiness')).toBeVisible();
   await expect(page.getByText('Unable to reach the backend API.')).toBeHidden();
 });
@@ -161,19 +38,24 @@ test('renders program readiness from derived API posture', async ({ page }) => {
 
 test.describe('feature slices', () => {
   const routes = [
-    ['/payments', 'Migration Readiness', 'Token migration'],
-    ['/warehouse', 'Operational Signals', 'Pick exceptions'],
-    ['/hr-platform', 'Platform Tasks', 'Role mapping'],
-    ['/insights', 'Decision Metrics', 'Decision latency'],
-    ['/automation', 'Opportunity Queue', 'Supplier onboarding triage'],
+    ['/payments', 'Migration Readiness', 'Token migration', mockPaymentReadiness.length],
+    ['/warehouse', 'Operational Signals', 'Pick exceptions', mockWarehouseSignals.length],
+    ['/hr-platform', 'Platform Tasks', 'Role mapping', mockHrPlatformTasks.length],
+    ['/insights', 'Decision Metrics', 'Decision latency', mockInsightMetrics.length],
+    [
+      '/automation',
+      'Opportunity Queue',
+      'Supplier onboarding triage',
+      mockAutomationCandidates.length,
+    ],
   ] as const;
 
-  for (const [route, heading, expectedRecord] of routes) {
+  for (const [route, heading, expectedRecord, recordCount] of routes) {
     test(`renders ${route} with API records`, async ({ page }) => {
       await page.goto(route);
 
       await expect(page.getByRole('heading', { name: heading })).toBeVisible();
-      await expect(page.locator('tbody tr')).toHaveCount(1);
+      await expect(page.locator('tbody tr')).toHaveCount(recordCount);
       await expect(page.getByText(expectedRecord)).toBeVisible();
       await expect(page.getByText('Unable to reach the backend API.')).toBeHidden();
     });

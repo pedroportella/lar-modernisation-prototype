@@ -10,7 +10,7 @@ import {
   selector: 'lar-app-shell',
   imports: [RouterLink, RouterLinkActive],
   template: `
-    <div class="shell">
+    <div class="au-body shell">
       <aside class="sidebar" aria-label="Primary">
         <a class="brand" routerLink="/" aria-label="Dashboard home">
           <span class="brand-mark">{{ markInitials }}</span>
@@ -60,7 +60,7 @@ import {
         gap: var(--lar-space-6);
         padding: var(--lar-space-5);
         border-right: 1px solid var(--lar-border);
-        background: #123237;
+        background: var(--lar-shell);
         color: #ffffff;
       }
 
@@ -80,7 +80,7 @@ import {
         place-items: center;
         border-radius: var(--lar-radius);
         background: #dceee8;
-        color: #123237;
+        color: var(--lar-shell);
         font-weight: 800;
       }
 
@@ -95,14 +95,14 @@ import {
 
       .brand small {
         margin-top: var(--lar-space-1);
-        color: #b7cbc6;
+        color: var(--lar-shell-muted);
       }
 
       nav a {
         display: block;
         padding: 0.7rem 0.8rem;
         border-radius: var(--lar-radius);
-        color: #dbe8e5;
+        color: var(--lar-shell-muted);
         font-weight: 700;
         text-decoration: none;
       }
