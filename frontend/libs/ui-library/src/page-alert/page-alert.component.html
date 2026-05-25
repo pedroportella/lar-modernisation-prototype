@@ -1,0 +1,13 @@
+<aside
+  class="au-page-alerts alert"
+  [class.alert--info]="tone() === 'info'"
+  [class.alert--success]="tone() === 'success'"
+  [class.alert--warning]="tone() === 'warning'"
+  [class.alert--error]="tone() === 'error'"
+  [attr.aria-live]="live()"
+>
+  @if (title()) {
+    <strong>{{ title() }}</strong>
+  }
+  <p><ng-content></ng-content></p>
+</aside>

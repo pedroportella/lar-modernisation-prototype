@@ -1,0 +1,31 @@
+<lar-form-field-wrapper
+  [id]="id()"
+  [label]="label()"
+  [alert]="alert()"
+  [description]="description()"
+  [filled]="filled()"
+  [required]="required()"
+  [disabled]="disabled()"
+  [hint]="hint()"
+  [error]="error()"
+  [success]="success()"
+>
+  <select
+    class="au-select au-field-width--{{ width() }}"
+    [class.au-select--invalid]="error()"
+    [class.au-select--valid]="success()"
+    [id]="id()"
+    [value]="value()"
+    [required]="required()"
+    [disabled]="disabled()"
+    [attr.aria-describedby]="describedByIds()"
+    [attr.aria-invalid]="error() ? true : null"
+    (change)="valueChange.emit($any($event.target).value)"
+  >
+    @for (option of options(); track option.value) {
+      <option [value]="option.value" [disabled]="option.disabled">
+        {{ option.label }}
+      </option>
+    }
+  </select>
+</lar-form-field-wrapper>

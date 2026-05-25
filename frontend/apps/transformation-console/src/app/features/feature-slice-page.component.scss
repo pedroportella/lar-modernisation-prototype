@@ -11,66 +11,6 @@
     minmax(88px, 110px) auto;
   gap: var(--lar-space-3);
   align-items: end;
-  padding: var(--lar-space-4);
-  border: 1px solid var(--lar-border);
-  border-radius: var(--lar-radius);
-  background: var(--lar-surface);
-}
-
-.field {
-  display: grid;
-  gap: var(--lar-space-1);
-}
-
-.field.compact {
-  max-width: 120px;
-}
-
-.field label {
-  color: var(--lar-text-muted);
-  font-size: 0.82rem;
-  font-weight: 800;
-}
-
-.filters input,
-.filters select,
-.workflow-form :is(input, select, textarea) {
-  min-height: 44px;
-  width: 100%;
-  border: 1px solid var(--lar-border-strong);
-  border-radius: var(--lar-radius);
-  color: var(--lar-text);
-  padding: 0 var(--lar-space-3);
-}
-
-.workflow-form textarea {
-  min-height: 104px;
-  padding: var(--lar-space-3);
-  resize: vertical;
-}
-
-.filters button,
-.workflow-actions button {
-  min-height: 44px;
-  border: 1px solid var(--lar-action);
-  border-radius: var(--lar-radius);
-  color: var(--lar-action);
-  font-weight: 800;
-  padding: 0 var(--lar-space-4);
-}
-
-.filters button:hover,
-.filters button:focus-visible,
-.workflow-actions button:hover,
-.workflow-actions button:focus-visible {
-  background: var(--lar-action);
-  color: #ffffff;
-}
-
-.workflow-actions button:disabled {
-  border-color: var(--lar-border-strong);
-  color: var(--lar-text-muted);
-  cursor: wait;
 }
 
 .data-layout {
@@ -188,14 +128,12 @@ tbody tr.selected td {
   color: var(--lar-success);
 }
 
-.field-error,
 .workflow-state {
   margin: 0;
   font-size: 0.82rem;
   font-weight: 800;
 }
 
-.field-error,
 .workflow-state.error {
   color: var(--lar-danger);
 }
@@ -207,11 +145,6 @@ tbody tr.selected td {
 .workflow-actions {
   display: flex;
   gap: var(--lar-space-2);
-}
-
-.workflow-actions .secondary {
-  border-color: var(--lar-border-strong);
-  color: var(--lar-text);
 }
 
 .pagination {

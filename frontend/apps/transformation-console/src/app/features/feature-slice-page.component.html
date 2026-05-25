@@ -30,63 +30,55 @@
         frontend-only delivery.
       </lar-page-alert>
     } @else {
-      <section class="filters" aria-label="Table filters">
-        <div class="field">
-          <label for="feature-search">Search</label>
-          <input
-            id="feature-search"
+      <lar-card
+        mode="panel"
+        title="Table filters"
+        cardClass="filters-panel"
+        aria-label="Table filters"
+      >
+        <div class="filters">
+          <lar-text-input
+            [id]="'feature-search'"
+            label="Search"
             type="search"
             [value]="searchTerm()"
             placeholder="Filter records"
-            (input)="updateSearch($event)"
-          />
-        </div>
+            (valueChange)="searchTerm.set($event); refreshQuery()"
+          ></lar-text-input>
 
-        @if (state.config.statusKey) {
-          <div class="field">
-            <label for="feature-status">Status</label>
-            <select
-              id="feature-status"
+          @if (state.config.statusKey) {
+            <lar-select-input
+              [id]="'feature-status'"
+              label="Status"
               [value]="statusFilter()"
-              (change)="updateStatusFilter($event)"
-            >
-              <option value="all">All statuses</option>
-              @for (status of statusOptions(state.config); track status) {
-                <option [value]="status">{{ status }}</option>
-              }
-            </select>
-          </div>
-        }
+              [options]="statusFilterOptions(state.config)"
+              (valueChange)="
+                statusFilter.set($event); page.set(1); refreshQuery()
+              "
+            ></lar-select-input>
+          }
 
-        <div class="field">
-          <label for="feature-sort">Sort</label>
-          <select
-            id="feature-sort"
+          <lar-select-input
+            [id]="'feature-sort'"
+            label="Sort"
             [value]="sort()"
-            (change)="updateSort($event)"
-          >
-            <option value="">Source order</option>
-            @for (option of sortOptions(state.config); track option.value) {
-              <option [value]="option.value">{{ option.label }}</option>
-            }
-          </select>
-        </div>
+            [options]="sortSelectOptions(state.config)"
+            (valueChange)="sort.set($event); page.set(1); refreshQuery()"
+          ></lar-select-input>
 
-        <div class="field compact">
-          <label for="feature-page-size">Rows</label>
-          <select
-            id="feature-page-size"
-            [value]="pageSize()"
-            (change)="updatePageSize($event)"
-          >
-            <option value="10">10</option>
-            <option value="25">25</option>
-            <option value="50">50</option>
-          </select>
-        </div>
+          <lar-select-input
+            [id]="'feature-page-size'"
+            label="Rows"
+            [value]="pageSize().toString()"
+            [options]="pageSizeOptions()"
+            (valueChange)="pageSize.set(+$event); page.set(1); refreshQuery()"
+          ></lar-select-input>
 
-        <button type="button" (click)="clearFilters()">Clear filters</button>
-      </section>
+          <lar-button variant="secondary" (click)="clearFilters()">
+            Clear filters
+          </lar-button>
+        </div>
+      </lar-card>
 
       @if (state.records.length === 0) {
         <lar-page-alert tone="info" title="No matching records">
@@ -203,9 +195,22 @@
                     }
                   </div>
 
-                  <div class="field">
-                    <label for="workflow-status">Status review</label>
-                    <select id="workflow-status" formControlName="status">
+                  <lar-form-field-wrapper
+                    [id]="'workflow-status'"
+                    label="Status review"
+                    [required]="true"
+                    [error]="controlError('status')"
+                  >
+                    <select
+                      class="au-select"
+                      [class.au-select--invalid]="controlError('status')"
+                      id="workflow-status"
+                      formControlName="status"
+                      [attr.aria-describedby]="
+                        controlError('status') ? 'workflow-status-error' : null
+                      "
+                      [attr.aria-invalid]="controlError('status') ? true : null"
+                    >
                       @for (
                         status of statusReviewOptions(
                           state.records,
@@ -213,67 +218,73 @@
                         );
                         track status
                       ) {
-                        <option [value]="status">{{ status }}</option>
+                        <option [value]="status">
+                          {{ statusLabel(status) }}
+                        </option>
                       }
                     </select>
-                    @if (
-                      reviewForm.controls.status.touched &&
-                      reviewForm.controls.status.invalid
-                    ) {
-                      <p class="field-error">Choose a status before saving.</p>
-                    }
-                  </div>
+                  </lar-form-field-wrapper>
 
-                  <div class="field">
-                    <label for="workflow-action">{{
-                      actionLabel(state.config)
-                    }}</label>
+                  <lar-form-field-wrapper
+                    [id]="'workflow-action'"
+                    [label]="actionLabel(state.config)"
+                    [required]="true"
+                    [error]="controlError('action')"
+                  >
                     <input
+                      class="au-text-input au-text-input--block"
+                      [class.error]="controlError('action')"
                       id="workflow-action"
                       type="text"
                       formControlName="action"
+                      [attr.aria-describedby]="
+                        controlError('action') ? 'workflow-action-error' : null
+                      "
+                      [attr.aria-invalid]="controlError('action') ? true : null"
                     />
-                    @if (
-                      reviewForm.controls.action.touched &&
-                      reviewForm.controls.action.invalid
-                    ) {
-                      <p class="field-error">
-                        Enter at least 8 characters for the action.
-                      </p>
-                    }
-                  </div>
+                  </lar-form-field-wrapper>
 
-                  <div class="field">
-                    <label for="workflow-note">Review note</label>
+                  <lar-form-field-wrapper
+                    [id]="'workflow-note'"
+                    label="Review note"
+                    [required]="true"
+                    [error]="controlError('note')"
+                  >
                     <textarea
+                      class="au-text-input au-text-input--block"
+                      [class.error]="controlError('note')"
                       id="workflow-note"
                       rows="4"
                       formControlName="note"
+                      [attr.aria-describedby]="
+                        controlError('note') ? 'workflow-note-error' : null
+                      "
+                      [attr.aria-invalid]="controlError('note') ? true : null"
                     ></textarea>
-                    @if (
-                      reviewForm.controls.note.touched &&
-                      reviewForm.controls.note.invalid
-                    ) {
-                      <p class="field-error">
-                        Add a note of at least 12 characters.
-                      </p>
-                    }
-                  </div>
+                  </lar-form-field-wrapper>
 
-                  <div class="field">
-                    <label for="workflow-reviewed-by">Reviewed by</label>
+                  <lar-form-field-wrapper
+                    [id]="'workflow-reviewed-by'"
+                    label="Reviewed by"
+                    [required]="true"
+                    [error]="controlError('reviewedBy')"
+                  >
                     <input
+                      class="au-text-input au-text-input--block"
+                      [class.error]="controlError('reviewedBy')"
                       id="workflow-reviewed-by"
                       type="text"
                       formControlName="reviewedBy"
+                      [attr.aria-describedby]="
+                        controlError('reviewedBy')
+                          ? 'workflow-reviewed-by-error'
+                          : null
+                      "
+                      [attr.aria-invalid]="
+                        controlError('reviewedBy') ? true : null
+                      "
                     />
-                    @if (
-                      reviewForm.controls.reviewedBy.touched &&
-                      reviewForm.controls.reviewedBy.invalid
-                    ) {
-                      <p class="field-error">Enter the reviewer or role.</p>
-                    }
-                  </div>
+                  </lar-form-field-wrapper>
 
                   @if (reviewForm.dirty && workflowSaveState() === 'idle') {
                     <p class="workflow-state" role="status">Unsaved changes</p>
@@ -289,21 +300,13 @@
                     </p>
                   }
 
-                  <div class="workflow-actions">
-                    <button
+                  <div class="au-form__item workflow-actions">
+                    <lar-button
                       type="submit"
                       [disabled]="workflowSaveState() === 'saving'"
                     >
                       Save review
-                    </button>
-                    <button
-                      type="button"
-                      class="secondary"
-                      [disabled]="workflowSaveState() === 'saving'"
-                      (click)="resetWorkflowReview(record, state.config)"
-                    >
-                      Reset
-                    </button>
+                    </lar-button>
                   </div>
                 </form>
               } @else {

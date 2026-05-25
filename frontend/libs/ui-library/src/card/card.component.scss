@@ -1,0 +1,51 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.health-card {
+  height: 100%;
+  margin-top: 0;
+}
+
+.health-card .health-card__title {
+  margin-top: 0;
+}
+
+.health-card__meta:empty {
+  display: none;
+}
+
+.health-card__meta:not(:empty) {
+  margin-bottom: var(--lar-space-4);
+}
+
+.lar-workstream-card {
+  min-height: 210px;
+}
+
+.lar-workstream-card .health-card__body {
+  height: 100%;
+}
+
+.lar-workstream-card .health-card__title {
+  font-size: 1.05rem;
+  line-height: 1.35;
+  margin-top: 0;
+}
+
+.lar-workstream-card .health-card__text {
+  margin-top: var(--lar-space-4);
+}
+
+.panel--wide {
+  grid-column: 1 / -1;
+}
+
+.eyebrow {
+  margin: 0 0 var(--lar-space-2);
+  color: var(--lar-action);
+  font-size: 0.74rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}

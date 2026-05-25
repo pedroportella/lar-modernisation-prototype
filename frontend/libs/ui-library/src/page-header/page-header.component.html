@@ -1,0 +1,7 @@
+<header class="page-header">
+  <p class="page-header__eyebrow">{{ eyebrow() }}</p>
+  <h1 [id]="headingId()">{{ title() }}</h1>
+  @if (summary()) {
+    <p class="page-header__summary">{{ summary() }}</p>
+  }
+</header>

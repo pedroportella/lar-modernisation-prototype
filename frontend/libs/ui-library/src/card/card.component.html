@@ -1,0 +1,45 @@
+<ng-template #cardContent>
+  <ng-content></ng-content>
+</ng-template>
+
+@if (mode() === 'panel') {
+  <section [class]="rootClasses()">
+    <div class="health-card__body">
+      @if (eyebrow()) {
+        <p class="eyebrow">{{ eyebrow() }}</p>
+      }
+
+      <h2 class="health-card__title">{{ title() }}</h2>
+
+      <ng-container *ngTemplateOutlet="cardContent"></ng-container>
+    </div>
+  </section>
+} @else {
+  <article [class]="rootClasses()">
+    <div class="health-card__body">
+      <div class="health-card__meta">
+        <ng-content select="[card-meta]"></ng-content>
+      </div>
+
+      <h2 class="health-card__title">
+        @if (href()) {
+          <a class="health-card__link" [href]="href()">{{ title() }}</a>
+        } @else {
+          {{ title() }}
+        }
+      </h2>
+
+      <div class="health-card__text">
+        <ng-container *ngTemplateOutlet="cardContent"></ng-container>
+      </div>
+
+      @if (meta()) {
+        <div class="health-card__date">{{ meta() }}</div>
+      }
+
+      @if (tag()) {
+        <div class="health-card__tag">{{ tag() }}</div>
+      }
+    </div>
+  </article>
+}

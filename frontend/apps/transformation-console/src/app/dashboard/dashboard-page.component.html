@@ -38,7 +38,12 @@
     } @else {
       <section class="workstreams" aria-label="Modernisation workstreams">
         @for (workstream of state.workstreams; track workstream.id) {
-          <lar-workstream-card [workstream]="workstream"></lar-workstream-card>
+          <lar-workstream-card
+            [priority]="workstream.priority"
+            [status]="workstream.status"
+            [title]="workstream.name"
+            [summary]="workstream.summary"
+          ></lar-workstream-card>
         }
       </section>
     }

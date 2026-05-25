@@ -1,0 +1,20 @@
+<div class="table-wrap">
+  <table class="au-table">
+    <thead>
+      <tr>
+        @for (column of columns(); track column.key) {
+          <th scope="col">{{ column.label }}</th>
+        }
+      </tr>
+    </thead>
+    <tbody>
+      @for (record of records(); track trackRecord(record)) {
+        <tr>
+          @for (column of columns(); track column.key) {
+            <td>{{ record[column.key] ?? '' }}</td>
+          }
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>

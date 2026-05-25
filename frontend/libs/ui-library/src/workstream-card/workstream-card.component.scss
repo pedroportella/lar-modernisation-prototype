@@ -1,0 +1,18 @@
+.workstream-card__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--lar-space-3);
+}
+
+.priority {
+  color: var(--lar-text-muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.workstream-card__summary {
+  margin: 0;
+  color: var(--lar-text-muted);
+  line-height: 1.55;
+}

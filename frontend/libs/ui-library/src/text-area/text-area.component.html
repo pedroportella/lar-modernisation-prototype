@@ -1,0 +1,26 @@
+<lar-form-field-wrapper
+  [id]="id()"
+  [label]="label()"
+  [alert]="alert()"
+  [description]="description()"
+  [filled]="filled()"
+  [required]="required()"
+  [disabled]="disabled()"
+  [hint]="hint()"
+  [error]="error()"
+  [success]="success()"
+>
+  <textarea
+    class="au-text-input au-text-input--block au-field-width--{{ width() }}"
+    [class.error]="error()"
+    [class.au-text-input--valid]="success()"
+    [id]="id()"
+    [rows]="rows()"
+    [required]="required()"
+    [disabled]="disabled()"
+    [attr.aria-describedby]="describedByIds()"
+    [attr.aria-invalid]="error() ? true : null"
+    (input)="valueChange.emit($any($event.target).value)"
+    >{{ value() }}</textarea
+  >
+</lar-form-field-wrapper>

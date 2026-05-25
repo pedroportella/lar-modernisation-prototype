@@ -1,0 +1,10 @@
+<button
+  class="au-btn"
+  [class.au-btn--secondary]="variant() === 'secondary'"
+  [class.au-btn--tertiary]="variant() === 'tertiary'"
+  [class.au-btn--disabled]="disabled()"
+  [attr.type]="type()"
+  [disabled]="disabled()"
+>
+  <ng-content></ng-content>
+</button>

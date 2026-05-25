@@ -1,0 +1,42 @@
+<div
+  class="au-form__item"
+  [class.au-form__item--filled]="filled()"
+  [class.form-field--disabled]="disabled()"
+>
+  <label [for]="id()">
+    <lar-label-mandatory [required]="required()">
+      {{ label() }}
+    </lar-label-mandatory>
+  </label>
+
+  @if (description() || hint()) {
+    <div class="au-form__item-description" [id]="id() + '-hint'">
+      {{ description() || hint() }}
+    </div>
+  }
+
+  @if (alert()) {
+    <div class="au-page-alerts au-page-alerts--warning" [id]="id() + '-alert'">
+      {{ alert() }}
+    </div>
+  }
+
+  <div class="form-field__control">
+    <ng-content></ng-content>
+  </div>
+
+  @if (error()) {
+    <div class="au-page-alerts au-page-alerts--error" [id]="id() + '-error'">
+      {{ error() }}
+    </div>
+  }
+
+  @if (success()) {
+    <div
+      class="au-page-alerts au-page-alerts--success"
+      [id]="id() + '-success'"
+    >
+      {{ success() }}
+    </div>
+  }
+</div>

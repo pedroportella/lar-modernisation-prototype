@@ -1,0 +1,32 @@
+<section class="page-frame" [attr.aria-labelledby]="headingId()">
+  <div class="page-frame__top">
+    <lar-page-header
+      [eyebrow]="eyebrow()"
+      [title]="title()"
+      [summary]="summary()"
+      [headingId]="headingId()"
+    ></lar-page-header>
+
+    @if (metaLabel() || metaValue() || hasActions()) {
+      <div class="page-frame__aside">
+        @if (metaLabel() || metaValue()) {
+          <dl>
+            @if (metaLabel()) {
+              <dt>{{ metaLabel() }}</dt>
+            }
+            @if (metaValue()) {
+              <dd>{{ metaValue() }}</dd>
+            }
+          </dl>
+        }
+        <div class="page-frame__actions">
+          <ng-content select="[page-actions]"></ng-content>
+        </div>
+      </div>
+    }
+  </div>
+
+  <div class="page-frame__body">
+    <ng-content></ng-content>
+  </div>
+</section>

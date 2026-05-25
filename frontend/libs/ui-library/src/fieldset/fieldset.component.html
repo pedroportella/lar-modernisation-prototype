@@ -1,0 +1,44 @@
+<fieldset
+  class="au-form__item"
+  [class.au-form__item--filled]="filled()"
+  [id]="id()"
+  [attr.aria-describedby]="describedByIds()"
+  [attr.aria-invalid]="error() ? true : null"
+>
+  <legend>
+    <lar-label-mandatory [required]="required()">
+      {{ legend() }}
+    </lar-label-mandatory>
+  </legend>
+
+  @if (hint()) {
+    <div class="au-form__item-description" [id]="id() + '-hint'">
+      {{ hint() }}
+    </div>
+  }
+
+  @if (alert()) {
+    <div class="au-page-alerts au-page-alerts--warning" [id]="id() + '-alert'">
+      {{ alert() }}
+    </div>
+  }
+
+  <div class="fieldset__content">
+    <ng-content></ng-content>
+  </div>
+
+  @if (error()) {
+    <div class="au-page-alerts au-page-alerts--error" [id]="id() + '-error'">
+      {{ error() }}
+    </div>
+  }
+
+  @if (success()) {
+    <div
+      class="au-page-alerts au-page-alerts--success"
+      [id]="id() + '-success'"
+    >
+      {{ success() }}
+    </div>
+  }
+</fieldset>

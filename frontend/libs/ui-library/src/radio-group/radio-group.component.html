@@ -1,0 +1,34 @@
+<lar-fieldset
+  [id]="id() || name()"
+  [legend]="legend()"
+  [alert]="alert()"
+  [error]="error()"
+  [hint]="hint()"
+  [required]="required()"
+  [success]="success()"
+>
+  @for (option of options(); track option.value) {
+    <div class="au-form__item-type--radio">
+      <div class="au-control-input">
+        <input
+          class="au-control-input__input"
+          [class.error]="error()"
+          type="radio"
+          [id]="optionId(option)"
+          [name]="name()"
+          [value]="option.value"
+          [checked]="option.value === value()"
+          [required]="required()"
+          [disabled]="disabled() || option.disabled"
+          (change)="valueChange.emit(option.value)"
+        />
+        <label class="au-control-input__text" [for]="optionId(option)">
+          {{ option.label }}
+          @if (option.hint) {
+            <span class="choice__hint">{{ option.hint }}</span>
+          }
+        </label>
+      </div>
+    </div>
+  }
+</lar-fieldset>

@@ -1,0 +1,29 @@
+.table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--lar-border);
+  border-radius: var(--lar-radius);
+  background: var(--lar-surface);
+}
+
+table {
+  width: 100%;
+  min-width: 640px;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  padding: var(--lar-space-3) var(--lar-space-4);
+  border-bottom: 1px solid var(--lar-border);
+  text-align: left;
+  vertical-align: top;
+}
+
+th {
+  color: var(--lar-text);
+  font-size: 0.82rem;
+}
+
+tr:last-child td {
+  border-bottom: 0;
+}

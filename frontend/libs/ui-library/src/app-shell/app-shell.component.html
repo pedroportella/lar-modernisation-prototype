@@ -1,0 +1,41 @@
+<div class="au-body shell">
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+
+  <aside class="sidebar" aria-label="Primary">
+    <a class="brand" routerLink="/" aria-label="Dashboard home">
+      <span class="brand-mark">{{ markInitials }}</span>
+      <span>
+        <strong>{{ productName }}</strong>
+        <small>{{ clientLabel }}</small>
+      </span>
+    </a>
+
+    <nav class="primary-nav" aria-label="Workspace">
+      @for (group of navGroups; track group.label) {
+        <section class="nav-group" [attr.aria-labelledby]="group.id">
+          <h2 [id]="group.id">{{ group.label }}</h2>
+          @for (item of group.items; track item.path) {
+            <a
+              [routerLink]="item.path"
+              routerLinkActive="active"
+              [routerLinkActiveOptions]="{ exact: item.path === '/' }"
+            >
+              {{ item.label }}
+            </a>
+          }
+        </section>
+      }
+    </nav>
+  </aside>
+
+  <div class="workspace">
+    <header class="workspace-bar">
+      <span>Modernisation workspace</span>
+      <strong>{{ runtimeLabel() }}</strong>
+    </header>
+
+    <main id="main-content" tabindex="-1">
+      <ng-content></ng-content>
+    </main>
+  </div>
+</div>

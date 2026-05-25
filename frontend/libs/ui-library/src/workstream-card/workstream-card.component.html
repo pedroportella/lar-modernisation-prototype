@@ -1,0 +1,8 @@
+<lar-card [title]="title()" cardClass="lar-workstream-card">
+  <div card-meta class="workstream-card__meta">
+    <span class="priority">P{{ priority() }}</span>
+    <lar-status-tag [status]="status()"></lar-status-tag>
+  </div>
+
+  <p class="workstream-card__summary">{{ summary() }}</p>
+</lar-card>

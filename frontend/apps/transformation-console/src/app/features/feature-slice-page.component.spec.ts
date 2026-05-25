@@ -110,6 +110,34 @@ describe(FeatureSlicePageComponent.name, () => {
     expect(fixture.nativeElement.textContent).toContain('Blocked');
   });
 
+  it('renders readable status option labels while preserving API values', async () => {
+    const fixture = TestBed.createComponent(FeatureSlicePageComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const statusFilterOptions = Array.from(
+      fixture.nativeElement.querySelectorAll('#feature-status option'),
+    ) as HTMLOptionElement[];
+    const reviewOptions = Array.from(
+      fixture.nativeElement.querySelectorAll('#workflow-status option'),
+    ) as HTMLOptionElement[];
+
+    expect(
+      statusFilterOptions.some(
+        (option) =>
+          option.value === 'AtRisk' && option.textContent?.trim() === 'At Risk',
+      ),
+    ).toBe(true);
+    expect(
+      reviewOptions.some(
+        (option) =>
+          option.value === 'OnTrack' &&
+          option.textContent?.trim() === 'On Track',
+      ),
+    ).toBe(true);
+  });
+
   it('does not offer save controls for viewer role', async () => {
     TestBed.resetTestingModule();
     window.larRuntimeConfig = {

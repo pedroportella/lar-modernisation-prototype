@@ -1,0 +1,18 @@
+@import '../../../ui-tokens/src/styles.css';
+
+.au-field-width--sm {
+  max-width: 10em;
+}
+
+.au-field-width--md {
+  max-width: 20em;
+}
+
+.au-field-width--lg {
+  max-width: 30em;
+}
+
+.au-field-width--full {
+  width: 100%;
+  max-width: 100%;
+}

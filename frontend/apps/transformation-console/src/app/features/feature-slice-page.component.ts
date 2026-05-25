@@ -27,12 +27,19 @@ import {
   WorkflowReview,
 } from '@lar/services';
 import {
+  ButtonComponent,
+  CardComponent,
+  FormControlOption,
+  FormFieldWrapperComponent,
   LoadingStateComponent,
   PageAlertComponent,
   PageFrameComponent,
+  SelectInputComponent,
   StatusTagComponent,
   SummaryMetricComponent,
+  TextInputComponent,
 } from '@lar/ui-library';
+import { formatStatus } from '@lar/utils';
 
 interface FeatureColumn {
   key: string;
@@ -62,6 +69,7 @@ interface FeatureConfig {
 
 type FeatureRecord = Record<string, string | number>;
 type WorkflowSaveState = 'idle' | 'saving' | 'saved' | 'error';
+type ReviewFormControlName = 'status' | 'action' | 'note' | 'reviewedBy';
 
 type FeatureState =
   | {
@@ -183,12 +191,17 @@ const featureConfigs: Record<string, FeatureConfig> = {
   selector: 'app-feature-slice-page',
   imports: [
     AsyncPipe,
+    ButtonComponent,
+    CardComponent,
+    FormFieldWrapperComponent,
     LoadingStateComponent,
     PageAlertComponent,
     PageFrameComponent,
     ReactiveFormsModule,
+    SelectInputComponent,
     StatusTagComponent,
     SummaryMetricComponent,
+    TextInputComponent,
   ],
   templateUrl: './feature-slice-page.component.html',
   styleUrl: './feature-slice-page.component.scss',
@@ -319,6 +332,58 @@ export class FeatureSlicePageComponent {
       : [];
   }
 
+  protected statusFilterOptions(config: FeatureConfig): FormControlOption[] {
+    return [
+      { label: 'All statuses', value: 'all' },
+      ...this.statusOptions(config).map((status) => ({
+        label: this.statusLabel(status),
+        value: status,
+      })),
+    ];
+  }
+
+  protected statusLabel(status: string): string {
+    return formatStatus(status);
+  }
+
+  protected sortSelectOptions(config: FeatureConfig): FormControlOption[] {
+    return [
+      { label: 'Source order', value: '' },
+      ...this.sortOptions(config).map((option) => ({
+        label: option.label,
+        value: option.value,
+      })),
+    ];
+  }
+
+  protected pageSizeOptions(): FormControlOption[] {
+    return [
+      { label: '10', value: '10' },
+      { label: '25', value: '25' },
+      { label: '50', value: '50' },
+    ];
+  }
+
+  protected controlError(
+    controlName: ReviewFormControlName,
+  ): string | undefined {
+    const control = this.reviewForm.controls[controlName];
+    if (!control.touched || control.valid) {
+      return undefined;
+    }
+
+    switch (controlName) {
+      case 'status':
+        return 'Choose a status before saving.';
+      case 'action':
+        return 'Enter at least 8 characters for the action.';
+      case 'note':
+        return 'Add a note of at least 12 characters.';
+      case 'reviewedBy':
+        return 'Enter the reviewer or role.';
+    }
+  }
+
   protected sortOptions(
     config: FeatureConfig,
   ): { value: string; label: string }[] {
@@ -433,13 +498,6 @@ export class FeatureSlicePageComponent {
         this.workflowSaveState.set('saved');
         this.reviewForm.markAsPristine();
       });
-  }
-
-  protected resetWorkflowReview(
-    record: FeatureRecord,
-    config: FeatureConfig,
-  ): void {
-    this.syncReviewForm(record, config, true);
   }
 
   protected hasWorkflowReview(
@@ -591,7 +649,7 @@ export class FeatureSlicePageComponent {
     return `${config.sliceKey}:${record['id']}`;
   }
 
-  private refreshQuery(): void {
+  protected refreshQuery(): void {
     this.queryRefresh.next();
   }
 }
