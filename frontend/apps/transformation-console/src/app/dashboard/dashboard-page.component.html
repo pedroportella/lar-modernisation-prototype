@@ -1,35 +1,28 @@
 <section class="dashboard" aria-labelledby="page-title">
-  <div class="page-heading">
-    <div>
-      <p class="eyebrow">Large Australian Retailer</p>
-      <h1 id="page-title">Transformation Delivery Console</h1>
-      <p>
-        Workstream health is loaded from the .NET API through the frontend
-        services package.
-      </p>
-    </div>
-  </div>
+  <lar-page-header
+    eyebrow="Large Australian Retailer"
+    title="Transformation Delivery Console"
+    summary="Workstream health is loaded through the frontend services package, with local mock data available for frontend-only delivery."
+  ></lar-page-header>
 
   @if (state$ | async; as state) {
     <section class="metrics" aria-label="Program summary">
-      <div>
-        <span>Total workstreams</span>
-        <strong>{{ state.workstreams.length }}</strong>
-      </div>
-      <div>
-        <span>Needs attention</span>
-        <strong>{{ state.riskCount }}</strong>
-      </div>
-      <div>
-        <span>API source</span>
-        <strong>.NET SQLite</strong>
-      </div>
+      <lar-summary-metric label="Total workstreams" [value]="state.workstreams.length"></lar-summary-metric>
+      <lar-summary-metric label="Needs attention" [value]="state.riskCount"></lar-summary-metric>
+      <lar-summary-metric label="API source" value="Runtime config"></lar-summary-metric>
     </section>
 
     @if (state.status === 'loading') {
-      <p class="notice">Loading workstream data...</p>
+      <lar-loading-state message="Loading workstream data..."></lar-loading-state>
     } @else if (state.status === 'error') {
-      <p class="notice error">Unable to reach the backend API.</p>
+      <lar-page-alert tone="error" title="Unable to reach the backend API">
+        Check the runtime API configuration or enable mock API mode for frontend-only delivery.
+      </lar-page-alert>
+    } @else if (state.workstreams.length === 0) {
+      <lar-empty-state
+        title="No workstreams"
+        message="No transformation workstreams are available from the current data source."
+      ></lar-empty-state>
     } @else {
       <section class="workstreams" aria-label="Modernisation workstreams">
         @for (workstream of state.workstreams; track workstream.id) {

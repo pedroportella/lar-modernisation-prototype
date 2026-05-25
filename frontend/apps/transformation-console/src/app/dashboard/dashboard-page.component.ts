@@ -2,7 +2,14 @@ import { AsyncPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { catchError, map, of, startWith } from 'rxjs';
 import { TransformationApiService, Workstream } from '@lar/services';
-import { WorkstreamCardComponent } from '@lar/ui-library';
+import {
+  EmptyStateComponent,
+  LoadingStateComponent,
+  PageAlertComponent,
+  PageHeaderComponent,
+  SummaryMetricComponent,
+  WorkstreamCardComponent,
+} from '@lar/ui-library';
 import { sortByStatusRisk } from '@lar/utils';
 
 type DashboardState =
@@ -12,7 +19,15 @@ type DashboardState =
 
 @Component({
   selector: 'app-dashboard-page',
-  imports: [AsyncPipe, WorkstreamCardComponent],
+  imports: [
+    AsyncPipe,
+    EmptyStateComponent,
+    LoadingStateComponent,
+    PageAlertComponent,
+    PageHeaderComponent,
+    SummaryMetricComponent,
+    WorkstreamCardComponent,
+  ],
   templateUrl: './dashboard-page.component.html',
   styleUrl: './dashboard-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
