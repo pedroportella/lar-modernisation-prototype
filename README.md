@@ -38,7 +38,7 @@ Frontend:
 
 ```bash
 cd frontend
-pnpm exec nx serve transformation-console
+pnpm dev
 ```
 
 Backend:
@@ -103,6 +103,14 @@ Docker:
 docker compose build
 docker compose up
 ```
+
+## Runtime Configuration
+
+The browser reads `frontend/apps/transformation-console/public/assets/runtime-config.js`, but that file is generated. Do not treat it as the source of truth.
+
+For local frontend runs, set values in the repository root `.env.local`, then run `pnpm config:local` from `frontend` or use `pnpm dev`, which runs the generator before serving.
+
+For GitHub Actions, the frontend job sets the same `LAR_FRONTEND_*` values as environment variables and runs `pnpm config:local` before build and smoke tests. CI keeps smoke tests in mock mode so they do not depend on a running backend.
 
 The frontend container writes `/assets/runtime-config.js` at startup. Override these values when needed:
 

@@ -4,11 +4,22 @@
 
 The GitHub Actions workflow at `.github/workflows/ci.yml` validates the prototype in three jobs:
 
-- `Frontend`: installs the Angular workspace, runs lint, typecheck, production build and Playwright route smoke tests.
+- `Frontend`: installs the Angular workspace, generates mock-mode runtime config, runs lint, typecheck, production build and Playwright route smoke tests.
 - `Backend`: restores, builds and tests the .NET solution.
 - `Docker Images`: builds the frontend and backend container images after both code gates pass.
 
 The workflow runs on pull requests, pushes to `main` and manual dispatches.
+
+The frontend job deliberately sets these environment variables before running `pnpm config:local`:
+
+```text
+LAR_FRONTEND_API_BASE_URL=mock
+LAR_FRONTEND_ENVIRONMENT_LABEL=Frontend mock mode
+LAR_FRONTEND_MOCK_API=true
+LAR_FRONTEND_ROLE=DeliveryLead
+```
+
+That keeps route smoke tests deterministic and independent of a live backend. Local full-stack persistence is still covered by running the backend or Docker stack and generating runtime config with `LAR_FRONTEND_API_BASE_URL=http://localhost:5029` and `LAR_FRONTEND_MOCK_API=false`.
 
 ## Runtime Packaging
 
@@ -23,6 +34,8 @@ Frontend API configuration is loaded from `/assets/runtime-config.js`, so the br
 - `LAR_FRONTEND_API_BASE_URL`, defaulting to `http://localhost:5029` for local Docker review;
 - `LAR_FRONTEND_MOCK_API`, defaulting to `false`;
 - `LAR_FRONTEND_ENVIRONMENT_LABEL`, defaulting to `Docker API mode`.
+
+For local development outside Docker, `frontend/scripts/write-runtime-config.mjs` writes the same browser-readable file from root `.env.local`, optional `frontend/.env.local` and process environment variables. The generated file includes a warning comment because `.env.local` or CI environment variables are the source of truth.
 
 ## Promotion Path
 

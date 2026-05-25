@@ -27,7 +27,7 @@ flowchart LR
   Ef --> Sqlite
 ```
 
-Angular reads runtime API configuration from `/assets/runtime-config.js`, which allows the same production build to target either local development or Docker-hosted API URLs. Local development writes the file with `frontend/scripts/write-runtime-config.mjs`; the nginx Docker image rewrites it at container startup from `LAR_FRONTEND_API_BASE_URL`, `LAR_FRONTEND_MOCK_API` and `LAR_FRONTEND_ENVIRONMENT_LABEL`.
+Angular reads runtime API configuration from `/assets/runtime-config.js`, which allows the same production build to target either local development or Docker-hosted API URLs. The file is browser-readable generated config rather than source-of-truth configuration. Local development writes it with `frontend/scripts/write-runtime-config.mjs` from `.env.local` and process environment variables; GitHub Actions runs the same generator from CI `LAR_FRONTEND_*` variables; the nginx Docker image rewrites it at container startup from `LAR_FRONTEND_API_BASE_URL`, `LAR_FRONTEND_MOCK_API` and `LAR_FRONTEND_ENVIRONMENT_LABEL`.
 
 The .NET API creates and seeds the SQLite database on startup. That keeps the prototype self-contained while still exercising realistic persistence, query services and integration tests.
 
