@@ -14,21 +14,21 @@
 
 .at-risk,
 .blocked {
-  border-color: #f0c3bd;
-  background: #fff0ee;
+  border-color: var(--lar-status-danger-border);
+  background: var(--lar-status-danger-surface);
   color: var(--lar-danger);
 }
 
 .monitoring {
-  border-color: #edd39a;
-  background: #fff8e8;
+  border-color: var(--lar-status-warning-border);
+  background: var(--lar-status-warning-surface);
   color: var(--lar-warning);
 }
 
 .on-track,
 .complete,
 .ready {
-  border-color: #b7d9c6;
-  background: #edf8f1;
+  border-color: var(--lar-status-success-border);
+  background: var(--lar-status-success-surface);
   color: var(--lar-success);
 }

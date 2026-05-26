@@ -13,7 +13,7 @@
   transform: translateY(calc(-100% - var(--lar-space-4)));
   border-radius: var(--lar-radius);
   background: var(--lar-action);
-  color: #ffffff;
+  color: var(--lar-shell-on);
   font-weight: 800;
   padding: var(--lar-space-2) var(--lar-space-3);
   text-decoration: none;
@@ -31,7 +31,7 @@
   padding: var(--lar-space-5);
   border-right: 1px solid var(--lar-border);
   background: var(--lar-shell);
-  color: #ffffff;
+  color: var(--lar-shell-on);
 }
 
 .brand {
@@ -39,14 +39,14 @@
   grid-template-columns: 44px minmax(0, 1fr);
   gap: var(--lar-space-3);
   align-items: center;
-  color: #ffffff;
+  color: var(--lar-shell-on);
   text-decoration: none;
 }
 
 .brand:visited,
 .brand:hover,
 .brand:focus-visible {
-  color: #ffffff;
+  color: var(--lar-shell-on);
   text-decoration: none;
 }
 
@@ -56,7 +56,7 @@
   height: 44px;
   place-items: center;
   border-radius: var(--lar-radius);
-  background: #dceee8;
+  background: var(--lar-shell-brand-mark);
   color: var(--lar-shell);
   font-weight: 800;
 }
@@ -77,7 +77,7 @@
 
 .brand:hover strong,
 .brand:focus-visible strong {
-  color: #ffffff;
+  color: var(--lar-shell-on);
 }
 
 .brand:hover small,
@@ -94,12 +94,12 @@
 .nav-group + .nav-group {
   margin-top: var(--lar-space-3);
   padding-top: var(--lar-space-4);
-  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  border-top: 1px solid var(--lar-shell-divider);
 }
 
 .nav-group h2 {
   margin: 0;
-  color: rgba(255, 255, 255, 0.64);
+  color: var(--lar-shell-heading);
   font-size: 0.72rem;
   font-weight: 800;
   letter-spacing: 0;
@@ -117,8 +117,8 @@
 
 .primary-nav a.active,
 .primary-nav a:hover {
-  background: rgba(255, 255, 255, 0.12);
-  color: #ffffff;
+  background: var(--lar-shell-active);
+  color: var(--lar-shell-on);
 }
 
 .workspace {
@@ -152,7 +152,7 @@ main {
 
   .sidebar {
     border-right: 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    border-bottom: 1px solid var(--lar-shell-divider);
   }
 
   .workspace-bar {

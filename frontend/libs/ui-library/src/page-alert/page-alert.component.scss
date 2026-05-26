@@ -21,7 +21,7 @@
 }
 
 .alert--error {
-  border-color: #f0c3bd;
+  border-color: var(--lar-status-danger-border);
   border-left-color: var(--lar-danger);
   color: var(--lar-danger);
 }

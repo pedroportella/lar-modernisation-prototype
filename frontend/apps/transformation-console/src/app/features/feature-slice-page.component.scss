@@ -57,7 +57,7 @@ tbody tr:last-child td {
 }
 
 tbody tr.selected td {
-  background: #eef6ff;
+  background: var(--lar-row-selected);
 }
 
 .record-link {
@@ -167,7 +167,7 @@ tbody tr.selected td {
   min-height: 40px;
   border: 1px solid var(--lar-border-strong);
   border-radius: var(--lar-radius);
-  background: #ffffff;
+  background: var(--lar-surface);
   color: var(--lar-text);
   font-weight: 800;
   padding: 0 var(--lar-space-3);
