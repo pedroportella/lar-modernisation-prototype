@@ -69,5 +69,3 @@ Automation governance reviews are append-only events tied to automation candidat
 ## Verification
 
 The standard gate is `pnpm verify`. The full packaging gate is `pnpm verify:full`, which adds Docker image builds after frontend and backend checks.
-
-For UI library and theme reuse guidance for the next prototype, see [ui-library-next-prototype-notes.md](ui-library-next-prototype-notes.md).
