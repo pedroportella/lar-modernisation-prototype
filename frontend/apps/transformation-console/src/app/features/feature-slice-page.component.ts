@@ -168,10 +168,10 @@ const featureConfigs: Record<string, FeatureConfig> = {
   },
   automation: {
     sliceKey: 'automation',
-    eyebrow: 'Automation and AI',
+    eyebrow: 'Automation governance',
     title: 'Opportunity Queue',
     summary:
-      'Candidates for automation or AI-assisted tooling with governance-aware next steps.',
+      'Automation candidates with evidence, approval and governance-aware next steps.',
     sourceLabel: '/api/automation/candidates',
     load: 'listAutomationCandidates',
     actionKey: 'recommendedNextStep',

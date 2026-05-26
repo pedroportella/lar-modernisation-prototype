@@ -141,7 +141,7 @@ See [docs/azure-deployment-blueprint.md](docs/azure-deployment-blueprint.md) for
 - Persisted workflow review writes protected by a demo role boundary.
 - Server-side feature query contracts with paging, filtering and sort validation.
 - Baseline security hardening: API rate limiting, explicit CORS config and nginx security headers.
-- Automation governance review events for AI/automation candidate triage.
+- Automation governance review events for candidate triage.
 - Shared formatting and standards gates for frontend and backend.
 - Docker Compose stack for local full-stack review.
 - GitHub Actions workflow that validates frontend, backend and Docker packaging.

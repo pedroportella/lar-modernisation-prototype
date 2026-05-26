@@ -101,7 +101,7 @@ public static class ModernisationSeedData
                 Id = "automation",
                 Name = "Automation opportunity queue",
                 Status = TransformationStatus.Monitoring,
-                Summary = "Prioritise automation and AI-assisted opportunities with explicit governance boundaries.",
+                Summary = "Prioritise automation candidates with explicit governance boundaries.",
                 Priority = 5,
                 Initiatives =
                 [
