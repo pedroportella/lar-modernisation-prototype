@@ -1,13 +1,15 @@
 You are working in the Large Australian Retailer Modernisation Prototype.
 
 Project intent:
-- This is a working interview prototype for a Talenza / Tranzformd Software Developer role.
+
+- This is a working interview prototype for Software Developer role.
 - Frame it as a neutral Large Australian Retailer modernisation vertical slice.
 - Optimise for reviewer clarity: runnable locally, easy to inspect, honest about boundaries.
 - Never name or imply a real client, real retailer, real data source, or confidential system.
 - Do not overclaim production readiness. Prefer "production-shaped", "adapter boundary", "future integration point", and "governance contract".
 
 Repo shape:
+
 - The real git repo root is lar-modernisation-prototype/.
 - frontend/ owns Angular, Nx, pnpm, Playwright and frontend runtime config.
 - backend/ owns the .NET solution, layered projects and tests.
@@ -15,6 +17,7 @@ Repo shape:
 - prototype-delivery-notes/ and position-description/ outside the repo are planning/interview notes, not app source.
 
 Frontend rules:
+
 - Use Angular/Nx idioms: apps/ for runnable apps and e2e, libs/ for reusable services, UI, tokens, assets and utils.
 - App composition belongs in frontend/apps/transformation-console.
 - Backend communication belongs in frontend/libs/services through typed DTOs and service methods.
@@ -36,13 +39,15 @@ Frontend rules:
 - Every route should preserve one h1, landmarks, accessible names, visible focus, readable contrast and no text overflow.
 
 Runtime config:
+
 - Do not treat frontend/apps/transformation-console/public/assets/runtime-config.js as source of truth.
-- Local/browser runtime config is generated from .env.local or LAR_FRONTEND_* variables.
+- Local/browser runtime config is generated from .env.local or LAR*FRONTEND*\* variables.
 - Keep mock mode explicit and visually obvious in the shell.
 - Mock API fixtures must stay aligned with backend contracts.
 - Do not commit .env.local. Add new local-only keys to .env.local.example and document them.
 
 Backend rules:
+
 - Preserve the layered .NET shape:
   - Api: endpoints, health, CORS, rate limiting, correlation, dependency registration.
   - Application: query services, workflow services, DTOs and service interfaces.
@@ -58,6 +63,7 @@ Backend rules:
 - Do not imply JWT, SSO, Entra ID, row-level security, PCI compliance or production authorization exists unless implemented.
 
 Contracts and workflows:
+
 - Frontend DTOs, mock API fixtures and backend response shapes must stay aligned.
 - Feature query contracts support search, status, paging and sort validation. Keep validation explicit and tested.
 - Workflow reviews are real persisted write paths but still demo-auth protected.
@@ -65,6 +71,7 @@ Contracts and workflows:
 - Model providers, prompt registries, evaluation harnesses and enterprise audit stores are future integration points unless implemented.
 
 Quality gates:
+
 - Standard gate: pnpm verify.
 - Full packaging gate: pnpm verify:full.
 - Frontend checks include format, lint, Angular typecheck, unit tests, production build and Playwright e2e where relevant.
@@ -74,12 +81,14 @@ Quality gates:
 - Use backend unit/integration tests for service behavior, endpoint contracts, validation, security config and persistence.
 
 Docs and reviewer handoff:
+
 - Update README.md, docs/architecture.md, docs/decisions.md, docs/reviewer-runbook.md and docs/ci-deployment-notes.md when architecture, commands, runtime config, API surface, Docker, CI or prototype boundaries change.
 - Keep docs technical and reviewer-friendly, not marketing copy.
 - README should clearly answer: what this is, how to run it, how to verify it, what is real, what is simulated and what production-next would be.
 - Keep screenshots intentional and refresh them only after runtime mode/content/theme are final.
 
 Implementation style:
+
 - Prefer small, reviewable vertical slices.
 - Reuse existing components, tokens, services and helpers before creating new abstractions.
 - Add abstraction only when repeated behavior has stabilized.
