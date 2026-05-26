@@ -24,7 +24,7 @@ This keeps the prototype closer to a maintainable Angular application than a sin
 
 The Angular build does not bake in a fixed API URL. Runtime config is served from `/assets/runtime-config.js`, so Docker and local development can point at different backend hosts without rebuilding the frontend image. The same config also carries a short environment label for the shell, making mock mode and API-backed mode visible to reviewers.
 
-The generated `runtime-config.js` file is not the source of truth. Local development uses `.env.local`, GitHub Actions uses explicit `LAR_FRONTEND_*` environment variables, and Docker uses container environment variables. Each path writes the browser-readable runtime config before serving the app. CI pins that generation to frontend mock mode so smoke tests stay deterministic without a live backend.
+The generated `runtime-config.js` file is not the source of truth. The repository keeps a default mock-mode copy so a fresh checkout has a browser-readable fallback, but local development uses `.env.local`, GitHub Actions uses explicit `LAR_FRONTEND_*` environment variables, and Docker uses container environment variables. Each path writes the browser-readable runtime config before serving the app. CI pins that generation to frontend mock mode so smoke tests stay deterministic without a live backend.
 
 ## Layered .NET API
 

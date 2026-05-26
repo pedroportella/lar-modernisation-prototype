@@ -11,10 +11,11 @@ window.larRuntimeConfig = {
   apiBaseUrl: 'mock',
   environmentLabel: 'Frontend mock mode',
   mockApi: true,
+  role: 'DeliveryLead',
 };
 ```
 
-Treat `apps/transformation-console/public/assets/runtime-config.js` as a generated browser-readable artifact. Edit `.env.local` or pass `LAR_FRONTEND_*` environment variables, then regenerate the file.
+Treat `apps/transformation-console/public/assets/runtime-config.js` as a generated browser-readable artifact. The checked-in copy is only the default mock-mode fallback for first-run local review. Edit `.env.local` or pass `LAR_FRONTEND_*` environment variables, then regenerate the file.
 
 Run the UI only:
 

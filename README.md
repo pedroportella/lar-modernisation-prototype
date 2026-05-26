@@ -106,7 +106,7 @@ docker compose up
 
 ## Runtime Configuration
 
-The browser reads `frontend/apps/transformation-console/public/assets/runtime-config.js`, but that file is generated. Do not treat it as the source of truth.
+The browser reads `frontend/apps/transformation-console/public/assets/runtime-config.js`. The checked-in copy is a default mock-mode fallback for first-run local review, but it is still generated browser config. Do not treat it as the source of truth.
 
 For local frontend runs, set values in the repository root `.env.local`, then run `pnpm config:local` from `frontend` or use `pnpm dev`, which runs the generator before serving.
 

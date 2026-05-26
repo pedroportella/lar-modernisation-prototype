@@ -108,7 +108,7 @@ Use this path when walking a reviewer through the prototype:
 - External integrations are simulated through seeded SQLite data.
 - Docker persists SQLite in the `backend-data` named volume.
 - Runtime frontend API configuration is intentionally outside the compiled Angular bundle so Docker/local API targets can be changed without rebuilding.
-- `frontend/apps/transformation-console/public/assets/runtime-config.js` is generated browser config. Change `.env.local`, Docker environment variables or CI `LAR_FRONTEND_*` variables rather than editing it as source.
+- `frontend/apps/transformation-console/public/assets/runtime-config.js` is generated browser config. The checked-in copy is a default mock-mode fallback; change `.env.local`, Docker environment variables or CI `LAR_FRONTEND_*` variables rather than editing it as source.
 - The Docker frontend container writes runtime config from `LAR_FRONTEND_API_BASE_URL`, `LAR_FRONTEND_MOCK_API` and `LAR_FRONTEND_ENVIRONMENT_LABEL` when nginx starts.
 - Architecture and decision notes live in `docs/architecture.md` and `docs/decisions.md`.
 - CI and deployment packaging notes live in `docs/ci-deployment-notes.md`.
